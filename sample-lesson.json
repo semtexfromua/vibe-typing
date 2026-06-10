@@ -1,0 +1,39 @@
+{
+  "title": "Кешування статистики користувача",
+  "project": "sample",
+  "date": "2026-06-10",
+  "fragments": [
+    {
+      "file": "app/stats.py",
+      "explanation": "Ця функція рахує статистику користувача, але обчислення дороге, тому результат кешується. Спершу дивимось у кеш: якщо значення там є — повертаємо одразу. Якщо нема — рахуємо, кладемо в кеш на 300 секунд (ttl) і повертаємо.",
+      "code": "def get_stats(user_id):\n    cached = cache.get(f\"stats:{user_id}\")\n    if cached is not None:\n        return cached\n    stats = compute_stats(user_id)\n    cache.set(f\"stats:{user_id}\", stats, ttl=300)\n    return stats",
+      "blanks": [
+        {
+          "start": 74,
+          "end": 92,
+          "answer": "cached is not None",
+          "hint": "що повертає cache.get, коли ключа нема? І чому перевірка просто if cached: була б помилкою для значення 0?"
+        },
+        {
+          "start": 196,
+          "end": 199,
+          "answer": "300",
+          "hint": "на скільки секунд кешуємо? Дивись пояснення зверху."
+        }
+      ]
+    },
+    {
+      "file": "app/stats.py",
+      "explanation": "Коли дані користувача змінюються, стара статистика в кеші стає брехливою. Тому є друга функція: вона видаляє запис з кешу за тим самим ключем, що й get_stats. Наступний виклик get_stats порахує все заново.",
+      "code": "def invalidate_stats(user_id):\n    cache.delete(f\"stats:{user_id}\")",
+      "blanks": [
+        {
+          "start": 48,
+          "end": 66,
+          "answer": "f\"stats:{user_id}\"",
+          "hint": "ключ має бути ТОЙ САМИЙ, що використовує get_stats — інакше видалимо не те."
+        }
+      ]
+    }
+  ]
+}
