@@ -176,7 +176,6 @@ function checkFragmentDone() {
     showResults();
   }
 }
-function showResults() {} // заглушка, реалізація в Task 5
 // === BLANKS ===
 function maybeOpenBlank() {
   const f = LESSON.fragments[state.frag];
@@ -236,7 +235,28 @@ $('blank-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitBlank();
   e.stopPropagation(); // щоб введення в інпут не йшло у двигун друку
 });
-// === RESULTS === (Task 5)
+// === RESULTS ===
+function showResults() {
+  $('main').hidden = true;
+  const secs = Math.round((Date.now() - state.startedAt) / 1000);
+  const acc = state.keystrokes
+    ? Math.round(100 * (state.keystrokes - state.errors) / state.keystrokes)
+    : 100;
+  $('r-accuracy').textContent = acc + '% точність';
+  $('r-time').textContent = Math.floor(secs / 60) + ' хв ' + (secs % 60) + ' с';
+  $('r-errors').textContent = state.errors;
+  $('r-blank-first').textContent = state.blanks.first;
+  $('r-blank-hint').textContent = state.blanks.hint;
+  $('r-blank-revealed').textContent = state.blanks.revealed;
+  $('results').hidden = false;
+  const history = JSON.parse(localStorage.getItem('practicum-history') || '[]');
+  history.push({
+    title: LESSON.title, project: LESSON.project, date: LESSON.date,
+    accuracy: acc, seconds: secs, errors: state.errors,
+    blanks: state.blanks, finishedAt: new Date().toISOString(),
+  });
+  localStorage.setItem('practicum-history', JSON.stringify(history));
+}
 
 renderFragment();
 </script>
