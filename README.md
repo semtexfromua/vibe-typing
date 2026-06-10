@@ -1,24 +1,34 @@
-# Practicum
+# Vibe Typing
 
-Typing-практикум з diff кодового агента: `/practicum` у Claude Code
-генерує самодостатній HTML-тренажер — передрук коду з простими
-поясненнями українською та покроковим гайдом по блоках.
+Плагін Claude Code: навчальний typing-тренажер на базі твого власного
+коду. Самодостатні HTML-уроки — передрук коду з простими поясненнями
+українською та покроковим гайдом по блоках.
 
-Дизайн: `docs/superpowers/specs/2026-06-10-practicum-typing-design.md`
+Команди:
+
+- `/vibe-typing:practicum` — урок з diff поточного чекпоінта
+- `/vibe-typing:how-to` — курс по існуючому проекту: «як написати його
+  з нуля», крок за кроком
+
+Спеки: `docs/superpowers/specs/`
 
 ## Встановлення
 
 ```bash
-mkdir -p ~/.claude/commands ~/.claude/skills
-ln -sfn ~/Programming/practicum/commands/practicum.md ~/.claude/commands/practicum.md
-ln -sfn ~/Programming/practicum/skills/practicum ~/.claude/skills/practicum
+claude plugin marketplace add ~/Programming/vibe-typing
+claude plugin install vibe-typing@vibe-typing-local
 ```
 
 ## Використання
 
-У будь-якому проєкті в Claude Code: `/practicum` (незакомічені зміни
-або останній коміт) чи `/practicum HEAD~3..` (діапазон). Урок
-відкриється в браузері: `.practicum/lessons/<дата>-<тема>.html`.
+- `/vibe-typing:practicum` — незакомічені зміни або останній коміт;
+  `/vibe-typing:practicum HEAD~3..` — діапазон комітів.
+- `/vibe-typing:how-to` — перший виклик аналізує проект, показує план
+  курсу і знахідки, після підтвердження пише `.practicum/course.md`
+  і генерує урок 01; кожен наступний виклик — наступний урок.
+  `/vibe-typing:how-to src/api` — курс лише по підсистемі.
+
+Уроки: `.practicum/lessons/*.html` у поточному проекті.
 
 ## Розробка
 
