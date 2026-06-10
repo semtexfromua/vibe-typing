@@ -1,6 +1,6 @@
 {
   "name": "vibe-typing",
   "description": "Навчальний typing-тренажер: уроки з diff чекпоінта (practicum) та курси по існуючому проекту (how-to)",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": { "name": "Maxim Rabchun", "email": "semtexfromua001@gmail.com" }
 }

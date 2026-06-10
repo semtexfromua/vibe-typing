@@ -83,6 +83,31 @@
     background: var(--surface);
   }
 
+  .header-right { display: flex; gap: 10px; align-items: center; }
+
+  #restart-btn {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--subtext);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  #restart-btn:hover { color: var(--text); border-color: var(--dim); }
+
+  /* тонкий прогрес уроку по символах */
+  #lesson-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px; width: 0;
+    background: var(--accent);
+    transition: width 0.2s ease;
+    z-index: 5;
+  }
+
   #explanation {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -278,10 +303,14 @@
 </style>
 </head>
 <body>
+<div id="lesson-progress"></div>
 <div class="wrap">
 <header>
   <h1 id="title"></h1>
-  <div id="progress"></div>
+  <div class="header-right">
+    <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
+    <div id="progress"></div>
+  </div>
 </header>
 <main id="main">
   <div id="explanation"></div>
@@ -315,6 +344,27 @@ const state = {
   startedAt: null,
 };
 let chars = [];   // span-елементи символів активного фрагмента
+
+const RESUME_KEY = 'practicum-resume:' + LESSON.title + ':' + LESSON.date;
+const TOTAL_CHARS = LESSON.fragments.reduce((n, f) => n + f.code.length, 0);
+
+function typedChars() {
+  let n = 0;
+  for (let i = 0; i < state.frag; i++) n += LESSON.fragments[i].code.length;
+  return n + state.pos;
+}
+
+function updateProgressBar() {
+  $('lesson-progress').style.width = (100 * typedChars() / TOTAL_CHARS) + '%';
+}
+
+function saveProgress() {
+  localStorage.setItem(RESUME_KEY, JSON.stringify({
+    frag: state.frag, pos: state.pos,
+    keystrokes: state.keystrokes, errors: state.errors,
+    elapsed: state.startedAt ? Date.now() - state.startedAt : 0,
+  }));
+}
 
 function renderFragment() {
   const f = LESSON.fragments[state.frag];
@@ -357,6 +407,7 @@ function updateCursor() {
     chars[state.pos].scrollIntoView({ block: 'nearest' });
   }
   updateStepNote();
+  updateProgressBar();
 }
 
 // Нотатка блоку, в якому зараз стоїть курсор; їде по вертикалі за курсором
@@ -394,6 +445,7 @@ document.addEventListener('keydown', e => {
     advanceAuto();
     updateCursor();
     checkFragmentDone();
+    if ($('results').hidden) saveProgress(); // після можливого переходу фрагмента
   } else {
     state.errors++;
     flashError();
@@ -421,6 +473,8 @@ function showResults() {
   $('r-time').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
   $('r-errors').textContent = state.errors;
   $('results').hidden = false;
+  $('lesson-progress').style.width = '100%';
+  localStorage.removeItem(RESUME_KEY);
   let history;
   try { history = JSON.parse(localStorage.getItem('practicum-history') || '[]'); } catch { history = []; }
   if (!Array.isArray(history)) history = [];
@@ -432,7 +486,35 @@ function showResults() {
   localStorage.setItem('practicum-history', JSON.stringify(history));
 }
 
-renderFragment();
+$('restart-btn').onclick = () => {
+  localStorage.removeItem(RESUME_KEY);
+  state.frag = 0; state.pos = 0; state.keystrokes = 0; state.errors = 0;
+  state.startedAt = null;
+  $('results').hidden = true;
+  $('main').hidden = false;
+  renderFragment();
+  $('restart-btn').blur(); // інакше пробіл/Enter під час друку тиснутимуть кнопку
+};
+
+// Відновлення незавершеної сесії цього уроку
+function init() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); } catch {}
+  if (saved && saved.frag < LESSON.fragments.length) {
+    state.frag = saved.frag;
+    state.keystrokes = saved.keystrokes || 0;
+    state.errors = saved.errors || 0;
+    if (saved.elapsed) state.startedAt = Date.now() - saved.elapsed;
+    renderFragment();
+    const upto = Math.min(saved.pos || 0, chars.length);
+    for (let i = 0; i < upto; i++) chars[i].classList.add('correct');
+    state.pos = upto;
+    updateCursor();
+  } else {
+    renderFragment();
+  }
+}
+init();
 </script>
 </body>
 </html>
