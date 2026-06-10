@@ -43,3 +43,10 @@ Path('/tmp/practicum-test.html').write_text(tpl.replace('__LESSON_JSON__', lesso
 EOF
 xdg-open /tmp/practicum-test.html
 ```
+
+Установка копіює плагін у кеш — правки навичок у репо НЕ підхоплюються
+живо. Після змін:
+
+```bash
+claude plugin update vibe-typing
+```
