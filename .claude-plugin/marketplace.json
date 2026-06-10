@@ -1,0 +1,11 @@
+{
+  "name": "vibe-typing-local",
+  "owner": { "name": "Maxim Rabchun" },
+  "plugins": [
+    {
+      "name": "vibe-typing",
+      "source": "./",
+      "description": "Vibe Typing — навчальний typing-тренажер (practicum, how-to)"
+    }
+  ]
+}
