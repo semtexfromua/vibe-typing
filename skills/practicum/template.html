@@ -175,12 +175,29 @@
     pre#code.error-flash { animation: none; border-color: var(--err); }
   }
 
-  /* Покрокова нотатка: що ми пишемо просто зараз */
+  /* Покрокова нотатка: маргіналія праворуч, на рівні рядка з курсором */
+  #code-row { position: relative; }
+
   #step-note {
+    position: absolute;
+    left: calc(100% + 18px);
+    width: 280px;
+    top: 0;
+    transition: top 0.18s ease;
     background: var(--surface);
     border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
-    border-radius: 12px;
-    padding: 14px 22px;
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+
+  /* немає місця праворуч — нотатка стає під кодом */
+  @media (max-width: 1419px) {
+    #step-note {
+      position: static;
+      width: auto;
+      border-radius: 12px;
+      padding: 14px 22px;
+    }
   }
 
   #step-note .step-label {
@@ -194,8 +211,8 @@
   }
 
   #step-text {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.55;
     color: var(--text);
   }
 
@@ -269,10 +286,12 @@
 <main id="main">
   <div id="explanation"></div>
   <div id="file"></div>
-  <pre id="code"></pre>
-  <div id="step-note" hidden>
-    <div class="step-label">зараз пишемо</div>
-    <div id="step-text"></div>
+  <div id="code-row">
+    <pre id="code"></pre>
+    <div id="step-note" hidden>
+      <div class="step-label">зараз пишемо</div>
+      <div id="step-text"></div>
+    </div>
   </div>
 </main>
 <section id="results" hidden>
@@ -340,13 +359,15 @@ function updateCursor() {
   updateStepNote();
 }
 
-// Нотатка блоку, в якому зараз стоїть курсор
+// Нотатка блоку, в якому зараз стоїть курсор; їде по вертикалі за курсором
 function updateStepNote() {
   const steps = LESSON.fragments[state.frag].steps || [];
   const s = steps.find(s => state.pos >= s.start && state.pos < s.end);
   if (!s) { $('step-note').hidden = true; return; }
   $('step-text').textContent = s.note;
   $('step-note').hidden = false;
+  const cur = chars[state.pos];
+  if (cur) $('step-note').style.top = (cur.offsetTop - 7) + 'px';
 }
 
 function flashError() {
