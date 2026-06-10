@@ -2,7 +2,7 @@
 
 Typing-практикум з diff кодового агента: `/practicum` у Claude Code
 генерує самодостатній HTML-тренажер — передрук коду з простими
-поясненнями українською та active-recall дірками.
+поясненнями українською та покроковим гайдом по блоках.
 
 Дизайн: `docs/superpowers/specs/2026-06-10-practicum-typing-design.md`
 

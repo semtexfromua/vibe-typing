@@ -5,52 +5,263 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Practicum</title>
 <style>
+  /* Палітра "Graphite": низькохромні нейтрали + теплий бурштиновий акцент */
   :root {
-    --bg: #1e1e2e; --panel: #27273a; --text: #cdd6f4; --dim: #6c7086;
-    --green: #a6e3a1; --red: #f38ba8; --yellow: #f9e2af; --accent: #89b4fa;
+    --bg:        #121417;
+    --surface:   #191c21;
+    --surface-2: #20242b;
+    --border:    #282d36;
+    --text:      #d4dae3;
+    --subtext:   #8b93a1;
+    --dim:       #4b525f;
+    --accent:    #d6a35c;
+    --ok:        #97c397;
+    --err:       #d4737a;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font-family: system-ui, sans-serif; min-height: 100vh; }
-  header { display: flex; justify-content: space-between; align-items: baseline;
-           padding: 16px 24px; color: var(--dim); }
-  header h1 { font-size: 18px; color: var(--text); margin: 0; }
-  main { max-width: 900px; margin: 0 auto; padding: 0 24px 48px; }
-  #explanation { background: var(--panel); border-left: 3px solid var(--accent);
-                 padding: 14px 18px; border-radius: 6px; line-height: 1.55; }
-  #file { color: var(--dim); font-size: 13px; margin: 18px 0 6px;
-          font-family: monospace; }
-  #code { background: var(--panel); padding: 18px; border-radius: 6px;
-          font-family: "JetBrains Mono", "Fira Code", monospace; font-size: 16px;
-          line-height: 1.7; overflow-x: auto; white-space: pre; }
-  .char { color: var(--dim); }
-  .char.correct { color: var(--green); }
-  .char.auto { color: var(--dim); }
-  .char.cursor { background: var(--accent); color: var(--bg); border-radius: 2px; }
-  .char.blank-pending { border-bottom: 2px dashed var(--yellow); color: transparent; }
-  .char.blank-done { color: var(--yellow); }
-  body.flash #code { outline: 2px solid var(--red); }
-  #blank-box { margin-top: 14px; background: var(--panel); padding: 14px 18px;
-               border-radius: 6px; }
-  #blank-box input { width: 100%; font-family: monospace; font-size: 16px;
-                     background: var(--bg); color: var(--text);
-                     border: 1px solid var(--dim); border-radius: 4px;
-                     padding: 8px 10px; }
-  #blank-box .controls { margin-top: 8px; display: flex; gap: 12px;
-                         align-items: center; }
-  button { background: none; border: 1px solid var(--dim); color: var(--dim);
-           border-radius: 4px; padding: 4px 10px; cursor: pointer; font: inherit; }
-  button:hover { color: var(--text); border-color: var(--text); }
-  #hint-text { color: var(--yellow); margin-top: 8px; display: none; }
-  #blank-status { color: var(--red); }
-  #results { max-width: 900px; margin: 48px auto; padding: 0 24px; }
-  #results table { border-collapse: collapse; margin-top: 16px; }
-  #results td { padding: 6px 16px 6px 0; text-align: left; }
-  .big { font-size: 32px; color: var(--green); }
+
+  html { background: var(--bg); }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 28px 120px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  h1#title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+
+  h1#title::before {
+    content: "practicum";
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.85;
+    margin-bottom: 4px;
+  }
+
+  #progress {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--subtext);
+    white-space: nowrap;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+
+  #explanation {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  #file {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--subtext);
+    margin: 0 0 10px 4px;
+    letter-spacing: 0.01em;
+  }
+
+  #file::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: var(--accent);
+    opacity: 0.7;
+    margin-right: 9px;
+    vertical-align: 1px;
+  }
+
+  pre#code {
+    margin: 0 0 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    font-family: var(--mono);
+    font-size: 17px;
+    line-height: 1.8;
+    white-space: pre;          /* довгі рядки — БЕЗ переносів */
+    overflow-x: auto;
+    transition: border-color 0.2s ease;
+  }
+
+  pre#code::-webkit-scrollbar { height: 8px; }
+  pre#code::-webkit-scrollbar-track { background: transparent; }
+  pre#code::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  pre#code::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+  .char {
+    color: var(--dim);                 /* ще не надруковано */
+    border-radius: 3px;
+    transition: color 0.12s ease, background-color 0.12s ease;
+  }
+
+  .char.correct { color: var(--text); }
+
+  .char.auto {
+    color: var(--dim);                 /* авто-відступ: майже непомітний */
+    opacity: 0.5;
+  }
+
+  .char.cursor {
+    background: var(--accent);
+    color: var(--bg);
+    animation: cursor-pulse 1.1s ease-in-out infinite;
+  }
+
+  @keyframes cursor-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+  }
+
+  /* Спалах помилки: коротко, без трясіння */
+  pre#code.error-flash {
+    animation: code-error 0.3s ease-out;
+  }
+
+  @keyframes code-error {
+    0%   { border-color: var(--err); box-shadow: 0 0 0 3px color-mix(in oklab, var(--err) 25%, transparent); }
+    100% { border-color: var(--border); box-shadow: 0 0 0 0 transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .char.cursor { animation: none; }
+    pre#code.error-flash { animation: none; border-color: var(--err); }
+  }
+
+  /* Покрокова нотатка: що ми пишемо просто зараз */
+  #step-note {
+    background: var(--surface);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+    border-radius: 12px;
+    padding: 14px 22px;
+  }
+
+  #step-note .step-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.85;
+    margin-bottom: 6px;
+  }
+
+  #step-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  section#results {
+    text-align: center;
+    padding-top: 24px;
+  }
+
+  section#results h2 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--subtext);
+    letter-spacing: 0.02em;
+  }
+
+  #r-accuracy {
+    font-family: var(--mono);
+    font-size: 88px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin: 8px 0 4px;
+  }
+
+  #r-accuracy::after {
+    content: " точність";
+    display: block;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--subtext);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  section#results table {
+    margin: 40px auto 0;
+    border-collapse: collapse;
+    font-size: 15px;
+    min-width: 380px;
+  }
+
+  section#results td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  section#results tr:last-child td { border-bottom: none; }
+
+  section#results td:first-child { color: var(--subtext); }
+
+  section#results td:last-child {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    text-align: right;
+  }
+
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
+<div class="wrap">
 <header>
   <h1 id="title"></h1>
   <div id="progress"></div>
@@ -59,28 +270,22 @@
   <div id="explanation"></div>
   <div id="file"></div>
   <pre id="code"></pre>
-  <div id="blank-box" hidden>
-    <div>Заповни пропуск і натисни Enter:</div>
-    <input id="blank-input" autocomplete="off" spellcheck="false">
-    <div class="controls">
-      <button id="hint-btn">підказка</button>
-      <button id="reveal-btn" hidden>показати відповідь</button>
-      <span id="blank-status"></span>
-    </div>
-    <div id="hint-text"></div>
+  <div id="step-note" hidden>
+    <div class="step-label">зараз пишемо</div>
+    <div id="step-text"></div>
   </div>
 </main>
 <section id="results" hidden>
-  <h2>Урок завершено 🎉</h2>
-  <div class="big" id="r-accuracy"></div>
+  <h2>Урок завершено</h2>
+  <div id="r-accuracy"></div>
   <table>
-    <tr><td>Час</td><td id="r-time"></td></tr>
-    <tr><td>Помилки друку</td><td id="r-errors"></td></tr>
-    <tr><td>Дірки з першої спроби</td><td id="r-blank-first"></td></tr>
-    <tr><td>Дірки з підказкою/не з першої</td><td id="r-blank-hint"></td></tr>
-    <tr><td>Відкриті відповіді</td><td id="r-blank-revealed"></td></tr>
+    <tbody>
+      <tr><td>Час</td><td id="r-time"></td></tr>
+      <tr><td>Помилки друку</td><td id="r-errors"></td></tr>
+    </tbody>
   </table>
 </section>
+</div>
 <script>
 const LESSON = __LESSON_JSON__;
 
@@ -89,10 +294,8 @@ const state = {
   frag: 0, pos: 0,
   keystrokes: 0, errors: 0,
   startedAt: null,
-  blanks: { first: 0, hint: 0, revealed: 0 },
 };
 let chars = [];   // span-елементи символів активного фрагмента
-let blank = null; // активна дірка {start,end,answer,hint,attempts,usedHint,revealed}
 
 function renderFragment() {
   const f = LESSON.fragments[state.frag];
@@ -103,17 +306,14 @@ function renderFragment() {
   const codeEl = $('code');
   codeEl.innerHTML = '';
   chars = [];
-  const inBlank = i => f.blanks.some(b => i >= b.start && i < b.end);
-  [...f.code].forEach((ch, i) => {
+  [...f.code].forEach(ch => {
     const span = document.createElement('span');
     span.className = 'char';
-    if (inBlank(i)) span.classList.add('blank-pending');
     span.textContent = ch === '\n' ? '⏎\n' : ch;
     codeEl.appendChild(span);
     chars.push(span);
   });
   state.pos = 0;
-  blank = null;
   advanceAuto();
   updateCursor();
 }
@@ -129,7 +329,6 @@ function advanceAuto() {
       state.pos++;
     } else break;
   }
-  maybeOpenBlank();
 }
 
 function updateCursor() {
@@ -138,12 +337,27 @@ function updateCursor() {
     chars[state.pos].classList.add('cursor');
     chars[state.pos].scrollIntoView({ block: 'nearest' });
   }
+  updateStepNote();
 }
 
-// === TYPING ===
+// Нотатка блоку, в якому зараз стоїть курсор
+function updateStepNote() {
+  const steps = LESSON.fragments[state.frag].steps || [];
+  const s = steps.find(s => state.pos >= s.start && state.pos < s.end);
+  if (!s) { $('step-note').hidden = true; return; }
+  $('step-text').textContent = s.note;
+  $('step-note').hidden = false;
+}
+
+function flashError() {
+  const el = $('code');
+  el.classList.remove('error-flash');
+  void el.offsetWidth; // перезапуск анімації
+  el.classList.add('error-flash');
+}
+
 document.addEventListener('keydown', e => {
   if (!$('results').hidden) return;
-  if (blank) return; // поки відкрита дірка, друк заблоковано
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const code = LESSON.fragments[state.frag].code;
   if (state.pos >= code.length) return;
@@ -161,8 +375,7 @@ document.addEventListener('keydown', e => {
     checkFragmentDone();
   } else {
     state.errors++;
-    document.body.classList.add('flash');
-    setTimeout(() => document.body.classList.remove('flash'), 150);
+    flashError();
   }
 });
 
@@ -176,78 +389,16 @@ function checkFragmentDone() {
     showResults();
   }
 }
-// === BLANKS ===
-function maybeOpenBlank() {
-  const f = LESSON.fragments[state.frag];
-  const b = f.blanks.find(b => b.start === state.pos);
-  if (b) openBlank(b);
-}
 
-function openBlank(b) {
-  blank = Object.assign({ attempts: 0, usedHint: false, revealed: false }, b);
-  $('blank-box').hidden = false;
-  $('hint-text').style.display = 'none';
-  $('hint-text').textContent = b.hint || '';
-  $('hint-btn').hidden = !b.hint;
-  $('reveal-btn').hidden = true;
-  $('blank-status').textContent = '';
-  $('blank-input').value = '';
-  $('blank-input').focus();
-}
-
-const norm = s => s.replace(/\s+/g, ' ').trim();
-
-function submitBlank() {
-  state.startedAt ??= Date.now();
-  if (norm($('blank-input').value) === norm(blank.answer)) {
-    for (let i = blank.start; i < blank.end; i++) {
-      chars[i].classList.remove('blank-pending');
-      chars[i].classList.add('blank-done');
-    }
-    let bucket = 'first';
-    if (blank.revealed) bucket = 'revealed';
-    else if (blank.usedHint || blank.attempts > 0) bucket = 'hint';
-    state.blanks[bucket]++;
-    state.pos = blank.end;
-    blank = null;
-    $('blank-box').hidden = true;
-    advanceAuto();
-    updateCursor();
-    checkFragmentDone();
-  } else {
-    blank.attempts++;
-    $('blank-status').textContent = 'не те, спробуй ще';
-    if (blank.attempts >= 2) $('reveal-btn').hidden = false;
-  }
-}
-
-$('hint-btn').onclick = () => {
-  blank.usedHint = true;
-  $('hint-text').style.display = 'block';
-  $('blank-input').focus();
-};
-$('reveal-btn').onclick = () => {
-  blank.revealed = true;
-  $('blank-input').value = blank.answer;
-  $('blank-input').focus();
-};
-$('blank-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitBlank();
-  e.stopPropagation(); // щоб введення в інпут не йшло у двигун друку
-});
-// === RESULTS ===
 function showResults() {
   $('main').hidden = true;
   const secs = Math.round((Date.now() - state.startedAt) / 1000);
   const acc = state.keystrokes
     ? Math.round(100 * (state.keystrokes - state.errors) / state.keystrokes)
     : 100;
-  $('r-accuracy').textContent = acc + '% точність';
-  $('r-time').textContent = Math.floor(secs / 60) + ' хв ' + (secs % 60) + ' с';
+  $('r-accuracy').textContent = acc + '%';
+  $('r-time').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
   $('r-errors').textContent = state.errors;
-  $('r-blank-first').textContent = state.blanks.first;
-  $('r-blank-hint').textContent = state.blanks.hint;
-  $('r-blank-revealed').textContent = state.blanks.revealed;
   $('results').hidden = false;
   let history;
   try { history = JSON.parse(localStorage.getItem('practicum-history') || '[]'); } catch { history = []; }
@@ -255,7 +406,7 @@ function showResults() {
   history.push({
     title: LESSON.title, project: LESSON.project, date: LESSON.date,
     accuracy: acc, seconds: secs, errors: state.errors,
-    blanks: state.blanks, finishedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
   });
   localStorage.setItem('practicum-history', JSON.stringify(history));
 }
