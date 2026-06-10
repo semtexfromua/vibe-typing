@@ -140,7 +140,43 @@ function updateCursor() {
   }
 }
 
-// === TYPING ===  (Task 3)
+// === TYPING ===
+document.addEventListener('keydown', e => {
+  if (!$('results').hidden) return;
+  if (blank) return; // поки відкрита дірка, друк заблоковано
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const code = LESSON.fragments[state.frag].code;
+  if (state.pos >= code.length) return;
+  let key = e.key;
+  if (key === 'Enter') key = '\n';
+  if (key.length !== 1 && key !== '\n') return; // Shift, F5, стрілки — ігноруємо
+  e.preventDefault();
+  state.startedAt ??= Date.now();
+  state.keystrokes++;
+  if (key === code[state.pos]) {
+    chars[state.pos].classList.add('correct');
+    state.pos++;
+    advanceAuto();
+    updateCursor();
+    checkFragmentDone();
+  } else {
+    state.errors++;
+    document.body.classList.add('flash');
+    setTimeout(() => document.body.classList.remove('flash'), 150);
+  }
+});
+
+function checkFragmentDone() {
+  const code = LESSON.fragments[state.frag].code;
+  if (state.pos < code.length) return;
+  if (state.frag + 1 < LESSON.fragments.length) {
+    state.frag++;
+    renderFragment();
+  } else {
+    showResults();
+  }
+}
+function showResults() {} // заглушка, реалізація в Task 5
 function maybeOpenBlank() {} // заглушка, реалізація в Task 4
 // === BLANKS ===  (Task 4)
 // === RESULTS === (Task 5)
