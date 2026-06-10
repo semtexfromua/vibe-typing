@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practicum</title>
+<style>
+  :root {
+    --bg: #1e1e2e; --panel: #27273a; --text: #cdd6f4; --dim: #6c7086;
+    --green: #a6e3a1; --red: #f38ba8; --yellow: #f9e2af; --accent: #89b4fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font-family: system-ui, sans-serif; min-height: 100vh; }
+  header { display: flex; justify-content: space-between; align-items: baseline;
+           padding: 16px 24px; color: var(--dim); }
+  header h1 { font-size: 18px; color: var(--text); margin: 0; }
+  main { max-width: 900px; margin: 0 auto; padding: 0 24px 48px; }
+  #explanation { background: var(--panel); border-left: 3px solid var(--accent);
+                 padding: 14px 18px; border-radius: 6px; line-height: 1.55; }
+  #file { color: var(--dim); font-size: 13px; margin: 18px 0 6px;
+          font-family: monospace; }
+  #code { background: var(--panel); padding: 18px; border-radius: 6px;
+          font-family: "JetBrains Mono", "Fira Code", monospace; font-size: 16px;
+          line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .char { color: var(--dim); }
+  .char.correct { color: var(--green); }
+  .char.auto { color: var(--dim); }
+  .char.cursor { background: var(--accent); color: var(--bg); border-radius: 2px; }
+  .char.blank-pending { border-bottom: 2px dashed var(--yellow); color: transparent; }
+  .char.blank-done { color: var(--yellow); }
+  body.flash #code { outline: 2px solid var(--red); }
+  #blank-box { margin-top: 14px; background: var(--panel); padding: 14px 18px;
+               border-radius: 6px; }
+  #blank-box input { width: 100%; font-family: monospace; font-size: 16px;
+                     background: var(--bg); color: var(--text);
+                     border: 1px solid var(--dim); border-radius: 4px;
+                     padding: 8px 10px; }
+  #blank-box .controls { margin-top: 8px; display: flex; gap: 12px;
+                         align-items: center; }
+  button { background: none; border: 1px solid var(--dim); color: var(--dim);
+           border-radius: 4px; padding: 4px 10px; cursor: pointer; font: inherit; }
+  button:hover { color: var(--text); border-color: var(--text); }
+  #hint-text { color: var(--yellow); margin-top: 8px; display: none; }
+  #blank-status { color: var(--red); }
+  #results { max-width: 900px; margin: 48px auto; padding: 0 24px; }
+  #results table { border-collapse: collapse; margin-top: 16px; }
+  #results td { padding: 6px 16px 6px 0; text-align: left; }
+  .big { font-size: 32px; color: var(--green); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <div id="progress"></div>
+</header>
+<main id="main">
+  <div id="explanation"></div>
+  <div id="file"></div>
+  <pre id="code"></pre>
+  <div id="blank-box" hidden>
+    <div>Заповни пропуск і натисни Enter:</div>
+    <input id="blank-input" autocomplete="off" spellcheck="false">
+    <div class="controls">
+      <button id="hint-btn">підказка</button>
+      <button id="reveal-btn" hidden>показати відповідь</button>
+      <span id="blank-status"></span>
+    </div>
+    <div id="hint-text"></div>
+  </div>
+</main>
+<section id="results" hidden>
+  <h2>Урок завершено 🎉</h2>
+  <div class="big" id="r-accuracy"></div>
+  <table>
+    <tr><td>Час</td><td id="r-time"></td></tr>
+    <tr><td>Помилки друку</td><td id="r-errors"></td></tr>
+    <tr><td>Дірки з першої спроби</td><td id="r-blank-first"></td></tr>
+    <tr><td>Дірки з підказкою/не з першої</td><td id="r-blank-hint"></td></tr>
+    <tr><td>Відкриті відповіді</td><td id="r-blank-revealed"></td></tr>
+  </table>
+</section>
+<script>
+const LESSON = __LESSON_JSON__;
+
+const $ = id => document.getElementById(id);
+const state = {
+  frag: 0, pos: 0,
+  keystrokes: 0, errors: 0,
+  startedAt: null,
+  blanks: { first: 0, hint: 0, revealed: 0 },
+};
+let chars = [];   // span-елементи символів активного фрагмента
+let blank = null; // активна дірка {start,end,answer,hint,attempts,usedHint,revealed}
+
+function renderFragment() {
+  const f = LESSON.fragments[state.frag];
+  $('title').textContent = LESSON.title;
+  $('progress').textContent = (state.frag + 1) + ' / ' + LESSON.fragments.length;
+  $('explanation').textContent = f.explanation;
+  $('file').textContent = f.file;
+  const codeEl = $('code');
+  codeEl.innerHTML = '';
+  chars = [];
+  const inBlank = i => f.blanks.some(b => i >= b.start && i < b.end);
+  [...f.code].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'char';
+    if (inBlank(i)) span.classList.add('blank-pending');
+    span.textContent = ch === '\n' ? '⏎\n' : ch;
+    codeEl.appendChild(span);
+    chars.push(span);
+  });
+  state.pos = 0;
+  blank = null;
+  advanceAuto();
+  updateCursor();
+}
+
+// Автоввід відступів: пробіли на початку рядка вводити не треба
+function advanceAuto() {
+  const code = LESSON.fragments[state.frag].code;
+  while (state.pos < code.length) {
+    const atLineStart = state.pos === 0 || code[state.pos - 1] === '\n';
+    const prevAuto = state.pos > 0 && chars[state.pos - 1].classList.contains('auto');
+    if (code[state.pos] === ' ' && (atLineStart || prevAuto)) {
+      chars[state.pos].classList.add('auto');
+      state.pos++;
+    } else break;
+  }
+  maybeOpenBlank();
+}
+
+function updateCursor() {
+  chars.forEach(c => c.classList.remove('cursor'));
+  if (state.pos < chars.length) {
+    chars[state.pos].classList.add('cursor');
+    chars[state.pos].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+// === TYPING ===  (Task 3)
+function maybeOpenBlank() {} // заглушка, реалізація в Task 4
+// === BLANKS ===  (Task 4)
+// === RESULTS === (Task 5)
+
+renderFragment();
+</script>
+</body>
+</html>
