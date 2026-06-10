@@ -29,7 +29,7 @@ python3 - <<'EOF'
 from pathlib import Path
 tpl = Path('skills/practicum/template.html').read_text()
 lesson = Path('sample-lesson.json').read_text()
-Path('/tmp/practicum-test.html').write_text(tpl.replace('__LESSON_JSON__', lesson))
+Path('/tmp/practicum-test.html').write_text(tpl.replace('__LESSON_JSON__', lesson.replace('</', '<\\/')))
 EOF
 xdg-open /tmp/practicum-test.html
 ```

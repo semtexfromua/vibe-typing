@@ -249,7 +249,9 @@ function showResults() {
   $('r-blank-hint').textContent = state.blanks.hint;
   $('r-blank-revealed').textContent = state.blanks.revealed;
   $('results').hidden = false;
-  const history = JSON.parse(localStorage.getItem('practicum-history') || '[]');
+  let history;
+  try { history = JSON.parse(localStorage.getItem('practicum-history') || '[]'); } catch { history = []; }
+  if (!Array.isArray(history)) history = [];
   history.push({
     title: LESSON.title, project: LESSON.project, date: LESSON.date,
     accuracy: acc, seconds: secs, errors: state.errors,
