@@ -177,8 +177,65 @@ function checkFragmentDone() {
   }
 }
 function showResults() {} // заглушка, реалізація в Task 5
-function maybeOpenBlank() {} // заглушка, реалізація в Task 4
-// === BLANKS ===  (Task 4)
+// === BLANKS ===
+function maybeOpenBlank() {
+  const f = LESSON.fragments[state.frag];
+  const b = f.blanks.find(b => b.start === state.pos);
+  if (b) openBlank(b);
+}
+
+function openBlank(b) {
+  blank = Object.assign({ attempts: 0, usedHint: false, revealed: false }, b);
+  $('blank-box').hidden = false;
+  $('hint-text').style.display = 'none';
+  $('hint-text').textContent = b.hint || '';
+  $('hint-btn').hidden = !b.hint;
+  $('reveal-btn').hidden = true;
+  $('blank-status').textContent = '';
+  $('blank-input').value = '';
+  $('blank-input').focus();
+}
+
+const norm = s => s.replace(/\s+/g, ' ').trim();
+
+function submitBlank() {
+  state.startedAt ??= Date.now();
+  if (norm($('blank-input').value) === norm(blank.answer)) {
+    for (let i = blank.start; i < blank.end; i++) {
+      chars[i].classList.remove('blank-pending');
+      chars[i].classList.add('blank-done');
+    }
+    let bucket = 'first';
+    if (blank.revealed) bucket = 'revealed';
+    else if (blank.usedHint || blank.attempts > 0) bucket = 'hint';
+    state.blanks[bucket]++;
+    state.pos = blank.end;
+    blank = null;
+    $('blank-box').hidden = true;
+    advanceAuto();
+    updateCursor();
+    checkFragmentDone();
+  } else {
+    blank.attempts++;
+    $('blank-status').textContent = 'не те, спробуй ще';
+    if (blank.attempts >= 2) $('reveal-btn').hidden = false;
+  }
+}
+
+$('hint-btn').onclick = () => {
+  blank.usedHint = true;
+  $('hint-text').style.display = 'block';
+  $('blank-input').focus();
+};
+$('reveal-btn').onclick = () => {
+  blank.revealed = true;
+  $('blank-input').value = blank.answer;
+  $('blank-input').focus();
+};
+$('blank-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitBlank();
+  e.stopPropagation(); // щоб введення в інпут не йшло у двигун друку
+});
 // === RESULTS === (Task 5)
 
 renderFragment();
