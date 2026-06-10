@@ -45,8 +45,9 @@ xdg-open /tmp/practicum-test.html
 ```
 
 Установка копіює плагін у кеш — правки навичок у репо НЕ підхоплюються
-живо. Після змін:
+живо. Після змін: підніми `version` у `.claude-plugin/plugin.json`
+(оновлення спрацьовує лише при зміні версії) і виконай:
 
 ```bash
-claude plugin update vibe-typing
+claude plugin update vibe-typing@vibe-typing-local
 ```
