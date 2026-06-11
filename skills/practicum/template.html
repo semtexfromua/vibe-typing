@@ -111,7 +111,8 @@
     z-index: 5;
   }
 
-  /* Дерево проекту: росте по мірі друку; тільки на широких екранах */
+  /* Дерево проекту (варіант «термінал» з дизайн-хендофа):
+     росте по мірі друку; тільки на широких екранах */
   #tree {
     display: none;
     position: fixed;
@@ -122,45 +123,101 @@
     overflow-y: auto;
     font-family: var(--mono);
     font-size: 12.5px;
-    line-height: 1.9;
     color: var(--subtext);
   }
   @media (min-width: 1480px) { #tree { display: block; } }
 
-  #tree .tree-root {
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    opacity: 0.85;
-    margin-bottom: 8px;
-  }
-
-  #tree .node { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #tree .node.dir { color: var(--dim); }
-  #tree .node.file::before { content: "· "; color: var(--dim); }
-  #tree .node.file.done { color: var(--subtext); }
-  #tree .node.file.done::before { content: "✓ "; color: var(--ok); }
-  #tree .node.file.current { color: var(--text); }
-  #tree .node.file.current::before { content: "› "; color: var(--accent); }
-
-  #tree .node.appear { animation: node-appear 0.45s ease-out; }
-  @keyframes node-appear {
+  /* поява нового вузла: 350ms, легкий виїзд зліва */
+  #tree .appear { animation: tp-appear 0.35s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+  @keyframes tp-appear {
     from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: none; }
   }
 
-  #tree-action {
-    margin-top: 10px;
-    color: var(--ok);
-    opacity: 0;
+  /* пульс активного маркера: 1.1s, синхронно з курсором у коді */
+  @keyframes tp-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
   }
-  #tree-action.show { animation: action-fade 2.6s ease forwards; }
-  @keyframes action-fade {
+
+  .vb-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px 12px;
+  }
+
+  .vb-prompt {
+    color: var(--accent);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vb-prompt .tilde { color: var(--dim); }
+
+  .vb-sep {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 8px -16px 8px;
+  }
+
+  .vb-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 25px;
+    white-space: nowrap;
+  }
+
+  .vb-mark {
+    flex: 0 0 10px;
+    text-align: center;
+    font-style: normal;
+    font-size: 10px;
+    line-height: 1;
+  }
+  .vb-mark.ok  { color: var(--ok); }
+  .vb-mark.cur { color: var(--accent); font-size: 12px; animation: tp-pulse 1.1s ease-in-out infinite; }
+
+  .vb-node.dir { color: var(--dim); }
+  .vb-node.file.done .vb-name { color: var(--subtext); }
+  .vb-node.file.current .vb-name { color: var(--text); }
+
+  .vb-name { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+  /* команда mkdir: з'являється і гасне за 2.6s */
+  .vb-cmd {
+    height: 24px;
+    line-height: 24px;
+    font-size: 11.5px;
+    color: var(--ok);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vb-cmd .dollar { color: var(--dim); margin-right: 6px; }
+  .vb-cmd.fade { animation: vb-fade 2.6s ease forwards; }
+  @keyframes vb-fade {
     0%   { opacity: 0; }
-    12%  { opacity: 0.9; }
-    70%  { opacity: 0.9; }
+    10%  { opacity: 1; }
+    75%  { opacity: 1; }
     100% { opacity: 0; }
+  }
+
+  .vb-stat {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px dashed var(--border);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+  .vb-stat.ok { color: var(--ok); }
+
+  @media (prefers-reduced-motion: reduce) {
+    #tree .appear { animation: none; }
+    .vb-mark.cur { animation: none !important; }
   }
 
   #explanation {
@@ -371,11 +428,7 @@
 </head>
 <body>
 <div id="lesson-progress"></div>
-<nav id="tree">
-  <div class="tree-root" id="tree-root"></div>
-  <div id="tree-nodes"></div>
-  <div id="tree-action"></div>
-</nav>
+<nav id="tree"></nav>
 <div class="wrap">
 <header>
   <h1 id="title"></h1>
@@ -470,8 +523,20 @@ function treeFiles() {
   return files;
 }
 
+const TREE_TOTAL = (() => {
+  const all = new Set(LESSON.tree || []);
+  LESSON.fragments.forEach(f => all.add(fragPath(f)));
+  return all.size;
+})();
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
 function renderTree() {
-  $('tree-root').textContent = LESSON.project + '/';
   const rows = [];
   const dirs = new Set();
   for (const f of treeFiles()) {
@@ -480,36 +545,57 @@ function renderTree() {
       const dir = parts.slice(0, d).join('/');
       if (!dirs.has(dir)) {
         dirs.add(dir);
-        rows.push({ key: dir, label: parts[d - 1] + '/', cls: 'dir', depth: d - 1 });
+        rows.push({ key: dir, l: parts[d - 1] + '/', t: 'd', d: d - 1 });
       }
     }
-    rows.push({ key: f.path, label: parts[parts.length - 1],
-                cls: 'file ' + f.cls, depth: parts.length - 1 });
+    rows.push({ key: f.path, l: parts[parts.length - 1], t: 'f',
+                d: parts.length - 1, st: f.cls });
   }
-  const box = $('tree-nodes');
-  box.innerHTML = '';
-  const newDirs = [];
-  for (const r of rows) {
-    const el = document.createElement('div');
-    el.className = 'node ' + r.cls;
-    el.style.paddingLeft = (r.depth * 14) + 'px';
-    el.textContent = r.label;
-    if (!treeShown.has(r.key)) {
-      el.classList.add('appear');
-      treeShown.add(r.key);
-      if (r.cls === 'dir') newDirs.push(r.key);
-    }
-    box.appendChild(el);
-  }
-  if (newDirs.length) treeAction('+ mkdir ' + newDirs[newDirs.length - 1]);
-}
+  const fresh = new Set(rows.filter(r => !treeShown.has(r.key)).map(r => r.key));
+  fresh.forEach(k => treeShown.add(k));
+  const freshDirs = rows.filter(r => r.t === 'd' && fresh.has(r.key));
 
-function treeAction(text) {
-  const el = $('tree-action');
-  el.textContent = text;
-  el.classList.remove('show');
-  void el.offsetWidth;
-  el.classList.add('show');
+  const doneN = rows.filter(r => r.t === 'f' && r.st === 'done').length;
+  const complete = !$('results').hidden;
+
+  const box = $('tree');
+  box.innerHTML = '';
+  const frame = el('div', 'vb-frame');
+
+  const prompt = el('div', 'vb-prompt');
+  prompt.appendChild(el('span', 'tilde', '~/'));
+  prompt.appendChild(document.createTextNode(LESSON.project));
+  frame.appendChild(prompt);
+  frame.appendChild(el('hr', 'vb-sep'));
+
+  const list = el('div');
+  for (const r of rows) {
+    if (freshDirs.length && r === freshDirs[0]) {
+      const cmd = el('div', 'vb-cmd appear fade');
+      cmd.style.paddingLeft = (r.d * 14) + 'px';
+      cmd.appendChild(el('span', 'dollar', '$'));
+      cmd.appendChild(document.createTextNode(
+        'mkdir -p ' + freshDirs[freshDirs.length - 1].key));
+      list.appendChild(cmd);
+    }
+    const node = el('div', 'vb-node ' + (r.t === 'd' ? 'dir' : 'file ' + r.st)
+      + (fresh.has(r.key) ? ' appear' : ''));
+    node.style.paddingLeft = (r.d * 14) + 'px';
+    if (r.t === 'f') {
+      const m = r.st === 'done' ? ['ok', '▪'] : ['cur', '▮'];
+      node.appendChild(el('i', 'vb-mark ' + m[0], m[1]));
+    }
+    node.appendChild(el('span', 'vb-name', r.l));
+    list.appendChild(node);
+  }
+  frame.appendChild(list);
+
+  frame.appendChild(el('div', 'vb-stat' + (complete ? ' ok' : ''),
+    complete
+      ? '── готово ✓ · ' + TREE_TOTAL + ' файлів · 100% ──'
+      : '── ' + rows.filter(r => r.t === 'f').length + ' файлів · ' + dirs.size
+        + ' тек · ' + Math.round(100 * doneN / TREE_TOTAL) + '% ──'));
+  box.appendChild(frame);
 }
 
 function renderFragment() {
