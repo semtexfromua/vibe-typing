@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,8 +10,8 @@
     --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   }
 
-  /* Теми. Дефолт — "Graphite": низькохромні нейтрали + теплий бурштиновий
-     акцент. Зміна: localStorage 'practicum-theme' (graphite/mocha/ink) */
+  /* Themes. Default — "Graphite": low-chroma neutrals + a warm amber
+     accent. Switch via localStorage 'practicum-theme' (graphite/mocha/ink) */
   :root, [data-theme="graphite"] {
     --bg:        #121417;
     --surface:   #191c21;
@@ -39,7 +39,7 @@
     --err:       #f38ba8;
   }
 
-  /* Ink — холодна, майже монохромна */
+  /* Ink — cool, almost monochrome */
   [data-theme="ink"] {
     --bg:        #101418;
     --surface:   #161b21;
@@ -135,7 +135,7 @@
   }
   #back-btn:disabled { opacity: 0.4; cursor: default; }
 
-  /* Налаштування вигляду: попап під шапкою */
+  /* Appearance settings: popover under the header */
   #settings { position: relative; }
   #settings-pop {
     position: absolute;
@@ -178,7 +178,7 @@
     border-color: var(--accent);
   }
 
-  /* тонкий прогрес уроку по символах */
+  /* thin per-character lesson progress bar */
   #lesson-progress {
     position: fixed;
     top: 0; left: 0;
@@ -188,8 +188,8 @@
     z-index: 5;
   }
 
-  /* Дерево проекту: позиціювання; рендер — варіанти A/B/C нижче
-     (вибір: localStorage 'practicum-tree-variant') */
+  /* Project tree: positioning; rendering — variants A/B/C below
+     (choice: localStorage 'practicum-tree-variant') */
   #tree {
     display: none;
     position: fixed;
@@ -201,7 +201,7 @@
   }
   @media (min-width: 1480px) { #tree { display: block; } }
 
-  /* ---------- панель дерева: спільна база ---------- */
+  /* ---------- tree panel: shared base ---------- */
   .tp {
     width: 272px;
     font-family: var(--mono);
@@ -209,19 +209,19 @@
     color: var(--subtext);
   }
 
-  /* поява нового вузла: 350ms, легкий виїзд зліва */
+  /* new node appearing: 350ms, slight slide-in from the left */
   .tp .appear { animation: tp-appear 0.35s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
   @keyframes tp-appear {
     from { opacity: 0; transform: translateX(-8px); }
   }
 
-  /* пульс активного маркера: 1.1s, синхронно з курсором у коді */
+  /* active marker pulse: 1.1s, in sync with the code cursor */
   @keyframes tp-pulse {
     0%, 100% { opacity: 1; }
     50%      { opacity: 0.4; }
   }
 
-  /* анонс (бейдж «нова» / команда mkdir): з'являється і гасне */
+  /* announcement ("new" badge / mkdir command): fades in and out */
   @keyframes tp-announce {
     0%   { opacity: 0; }
     10%  { opacity: 1; }
@@ -234,7 +234,7 @@
     .tp .va-state.cur, .tp .vb-mark.cur { animation: none !important; }
   }
 
-  /* ---------- варіант A — «IDE-мінімалізм+» ---------- */
+  /* ---------- variant A — "IDE minimalism+" ---------- */
   .va-head {
     display: flex;
     justify-content: space-between;
@@ -260,7 +260,7 @@
   }
   .va-count span { color: var(--dim); }
 
-  /* лінія прогресу курсу: 2px, бурштин → зелена коли все готово */
+  /* course progress line: 2px, amber → green when complete */
   .va-meter {
     height: 2px;
     border-radius: 1px;
@@ -285,7 +285,7 @@
     white-space: nowrap;
   }
 
-  /* направляюча вкладеності: 1px лінія на кожен рівень (14px/рівень) */
+  /* nesting guide: 1px line per level (14px/level) */
   .va-guide {
     flex: 0 0 14px;
     align-self: stretch;
@@ -320,7 +320,7 @@
   }
   .va-node.file.current .va-name { color: var(--text); }
 
-  /* нова тека: ім'я підсвічене + бейдж, який гасне за 2.6s */
+  /* new folder: highlighted name + a badge fading out after 2.6s */
   .va-node.dir.announce .va-name { color: var(--accent); }
   .va-new {
     margin-left: auto;
@@ -343,7 +343,7 @@
   }
   .va-foot.ok { color: var(--ok); }
 
-  /* ---------- варіант B — «термінал / будівництво» ---------- */
+  /* ---------- variant B — "terminal / construction" ---------- */
   .vb-frame {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -387,7 +387,7 @@
   .vb-node.file.current .vb-name { color: var(--text); }
   .vb-name { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
-  /* команда mkdir: з'являється і гасне за 2.6s */
+  /* mkdir command: fades in and out over 2.6s */
   .vb-cmd {
     height: 24px;
     line-height: 24px;
@@ -411,7 +411,7 @@
   }
   .vb-stat.ok { color: var(--ok); }
 
-  /* ---------- варіант C — «каркас» ---------- */
+  /* ---------- variant C — "scaffold" ---------- */
   .vc { font-size: 12px; }
 
   .vc-tab {
@@ -471,7 +471,7 @@
     letter-spacing: 0.02em;
   }
 
-  /* нова тека = пунктирний каркас; твердне при наступному рендері */
+  /* new folder = dashed scaffold; solidifies on the next render */
   .vc-dir.fresh {
     border-style: dashed;
     border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
@@ -502,7 +502,7 @@
   }
   .vc-foot.ok { color: var(--ok); }
 
-  /* поява контейнера — м'якше, ніж у рядка */
+  /* container appearing — softer than a row */
   .vc .appear { animation: vc-appear 0.4s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
   @keyframes vc-appear {
     from { opacity: 0; transform: translateY(-4px) scale(0.97); }
@@ -551,12 +551,12 @@
     font-family: var(--mono);
     font-size: 17px;
     line-height: 1.8;
-    white-space: pre;          /* довгі рядки — БЕЗ переносів */
+    white-space: pre;          /* long lines — NO wrapping */
     overflow-x: auto;
     transition: border-color 0.2s ease;
-    /* ширина — під найдовший рядок, може виходити за колонку 880px.
-       Кап: 50vw+86px = до краю екрана мінус місце нотатки (280+18)
-       і відступ 28px, з урахуванням центрованої колонки */
+    /* width follows the longest line and may exceed the 880px column.
+       Cap: 50vw+86px = up to the screen edge minus the note space (280+18)
+       and a 28px margin, accounting for the centered column */
     width: max-content;
     min-width: 100%;
     max-width: calc(50vw + 86px);
@@ -571,7 +571,7 @@
   pre#code::-webkit-scrollbar-thumb:hover { background: var(--dim); }
 
   .char {
-    color: var(--dim);                 /* ще не надруковано */
+    color: var(--dim);                 /* not typed yet */
     border-radius: 3px;
     transition: color 0.12s ease, background-color 0.12s ease;
   }
@@ -579,11 +579,11 @@
   .char.correct { color: var(--text); }
 
   .char.auto {
-    color: var(--dim);                 /* авто-відступ: майже непомітний */
+    color: var(--dim);                 /* auto-indent: barely visible */
     opacity: 0.5;
   }
 
-  .char.skip {                         /* коментар/докстрінг: читаємо, не друкуємо */
+  .char.skip {                         /* comment/docstring: read, not typed */
     color: color-mix(in oklab, var(--ok) 60%, var(--dim));
     font-style: italic;
   }
@@ -599,7 +599,7 @@
     50%      { opacity: 0.45; }
   }
 
-  /* Спалах помилки: коротко, без трясіння */
+  /* Error flash: short, no shake */
   pre#code.error-flash {
     animation: code-error 0.3s ease-out;
   }
@@ -614,12 +614,12 @@
     pre#code.error-flash { animation: none; border-color: var(--err); }
   }
 
-  /* Покрокова нотатка: маргіналія праворуч, на рівні рядка з курсором */
+  /* Step note: a margin card on the right, level with the cursor line */
   #code-row { position: relative; }
 
   #step-note {
     position: absolute;
-    /* left виставляє JS — правий край коду тепер динамічний */
+    /* left is set by JS — the code's right edge is dynamic */
     width: 280px;
     top: 0;
     transition: top 0.18s ease;
@@ -629,7 +629,7 @@
     padding: 12px 16px;
   }
 
-  /* немає місця праворуч — нотатка стає під кодом, код може до краю екрана */
+  /* no room on the right — the note goes below the code, code may reach the screen edge */
   @media (max-width: 1419px) {
     #step-note {
       position: static;
@@ -680,7 +680,7 @@
   }
 
   #r-accuracy::after {
-    content: " точність";
+    content: " accuracy";
     display: block;
     font-family: var(--sans);
     font-size: 13px;
@@ -724,23 +724,23 @@
 <header>
   <h1 id="title"></h1>
   <div class="header-right">
-    <button id="back-btn" type="button" title="попередній фрагмент">← назад</button>
-    <button id="next-btn" type="button" title="наступний фрагмент (останній — завершує урок)">вперед →</button>
-    <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
+    <button id="back-btn" type="button" title="previous fragment">← back</button>
+    <button id="next-btn" type="button" title="next fragment (the last one finishes the lesson)">next →</button>
+    <button id="restart-btn" type="button" title="reset progress and start over">⟲ restart</button>
     <div id="progress"></div>
     <div id="settings">
-      <button id="settings-btn" type="button" title="налаштування вигляду">⚙</button>
+      <button id="settings-btn" type="button" title="appearance settings">⚙</button>
       <div id="settings-pop" hidden>
         <div class="set-group">
-          <div class="set-label">дерево</div>
+          <div class="set-label">tree</div>
           <div class="set-options">
             <button type="button" data-variant="a">IDE</button>
-            <button type="button" data-variant="b">термінал</button>
-            <button type="button" data-variant="c">каркас</button>
+            <button type="button" data-variant="b">terminal</button>
+            <button type="button" data-variant="c">scaffold</button>
           </div>
         </div>
         <div class="set-group">
-          <div class="set-label">тема</div>
+          <div class="set-label">theme</div>
           <div class="set-options">
             <button type="button" data-theme-opt="graphite">graphite</button>
             <button type="button" data-theme-opt="mocha">mocha</button>
@@ -757,18 +757,18 @@
   <div id="code-row">
     <pre id="code"></pre>
     <div id="step-note" hidden>
-      <div class="step-label">зараз пишемо</div>
+      <div class="step-label">now writing</div>
       <div id="step-text"></div>
     </div>
   </div>
 </main>
 <section id="results" hidden>
-  <h2>Урок завершено</h2>
+  <h2>Lesson complete</h2>
   <div id="r-accuracy"></div>
   <table>
     <tbody>
-      <tr><td>Час</td><td id="r-time"></td></tr>
-      <tr><td>Помилки друку</td><td id="r-errors"></td></tr>
+      <tr><td>Time</td><td id="r-time"></td></tr>
+      <tr><td>Typing errors</td><td id="r-errors"></td></tr>
     </tbody>
   </table>
 </section>
@@ -776,8 +776,8 @@
 <script>
 const LESSON = __LESSON_JSON__;
 
-// Друкарські символи, яких нема на клавіатурі → ASCII-аналоги.
-// Заміни строго 1:1, щоб офсети steps лишались чинними.
+// Typographic characters absent from keyboards → ASCII equivalents.
+// Strictly 1:1 replacements so step offsets stay valid.
 const CHAR_MAP = { '—':'-', '–':'-', '−':'-', '\u00A0':' ',
                    '“':'"', '”':'"', '„':'"', '«':'"', '»':'"',
                    '‘':"'", '’':"'", '‚':"'" };
@@ -787,7 +787,7 @@ for (const f of LESSON.fragments)
 const THEME = localStorage.getItem('practicum-theme') || 'graphite';
 document.documentElement.dataset.theme = THEME;
 
-// 'a' — IDE-мінімалізм+, 'b' — термінал, 'c' — каркас
+// 'a' — IDE minimalism+, 'b' — terminal, 'c' — scaffold
 let TREE_VARIANT = localStorage.getItem('practicum-tree-variant') || 'a';
 
 const $ = id => document.getElementById(id);
@@ -796,7 +796,7 @@ const state = {
   keystrokes: 0, errors: 0,
   startedAt: null,
 };
-let chars = [];   // span-елементи символів активного фрагмента
+let chars = [];   // char spans of the active fragment
 
 const RESUME_KEY = 'practicum-resume:' + LESSON.title + ':' + LESSON.date;
 const TOTAL_CHARS = LESSON.fragments.reduce((n, f) => n + f.code.length, 0);
@@ -819,9 +819,9 @@ function saveProgress() {
   }));
 }
 
-// --- Дерево проекту: файли попередніх уроків (LESSON.tree) + файли
-// відвіданих фрагментів; раз з'явившись, вузол не зникає ---
-const treeShown = new Set(); // ключі вузлів, що вже з'являлись (анімація)
+// --- Project tree: files from previous lessons (LESSON.tree) + files of
+// visited fragments; once shown, a node never disappears ---
+const treeShown = new Set(); // keys of nodes already shown (animation)
 
 function fragPath(f) { return f.file.split(' (')[0].trim(); }
 
@@ -869,7 +869,7 @@ function treeRowsData() {
     rows.push({ key: f.path, l: parts[parts.length - 1], t: 'f',
                 d: parts.length - 1, st: f.cls });
   }
-  // fresh = вузол з'являється вперше → анімація появи + анонс теки
+  // fresh = node appears for the first time → appear animation + folder announcement
   for (const r of rows) {
     if (!treeShown.has(r.key)) { r.fresh = true; treeShown.add(r.key); }
   }
@@ -887,7 +887,7 @@ function treeOpts(rows) {
   };
 }
 
-/* ---------- A — IDE-мінімалізм+ ---------- */
+/* ---------- A — IDE minimalism+ ---------- */
 function renderPanelA(box, rows, o) {
   box.className = 'tp va' + (o.complete ? ' complete' : '');
   box.innerHTML = '';
@@ -913,7 +913,7 @@ function renderPanelA(box, rows, o) {
     if (r.t === 'd') {
       node.appendChild(el('span', 'va-arrow', '▾'));
       node.appendChild(el('span', 'va-name', r.l));
-      if (r.fresh) node.appendChild(el('span', 'va-new', 'нова'));
+      if (r.fresh) node.appendChild(el('span', 'va-new', 'new'));
     } else {
       node.appendChild(el('span', 'va-name', r.l));
       if (r.st === 'done')    node.appendChild(el('span', 'va-state ok', '✓'));
@@ -925,11 +925,11 @@ function renderPanelA(box, rows, o) {
 
   box.appendChild(el('div', 'va-foot' + (o.complete ? ' ok' : ''),
     o.complete
-      ? '✓ урок завершено — ' + o.total + ' файлів збудовано'
-      : 'збудовано ' + o.done + ' із ' + o.total + ' файлів'));
+      ? '✓ lesson complete — ' + o.total + ' files built'
+      : 'built ' + o.done + ' of ' + o.total + ' files'));
 }
 
-/* ---------- B — термінал / будівництво ---------- */
+/* ---------- B — terminal / construction ---------- */
 function renderPanelB(box, rows, o) {
   box.className = 'tp vb';
   box.innerHTML = '';
@@ -964,13 +964,13 @@ function renderPanelB(box, rows, o) {
 
   frame.appendChild(el('div', 'vb-stat' + (o.complete ? ' ok' : ''),
     o.complete
-      ? '── готово ✓ · ' + o.total + ' файлів · 100% ──'
-      : '── ' + rows.filter(r => r.t === 'f').length + ' файлів · ' + o.dirs
-        + ' тек · ' + Math.round(100 * o.done / o.total) + '% ──'));
+      ? '── done ✓ · ' + o.total + ' files · 100% ──'
+      : '── ' + rows.filter(r => r.t === 'f').length + ' files · ' + o.dirs
+        + ' dirs · ' + Math.round(100 * o.done / o.total) + '% ──'));
   box.appendChild(frame);
 }
 
-/* ---------- C — каркас ---------- */
+/* ---------- C — scaffold ---------- */
 function renderPanelC(box, rows, o) {
   box.className = 'tp vc' + (o.complete ? ' complete' : '');
   box.innerHTML = '';
@@ -982,7 +982,7 @@ function renderPanelC(box, rows, o) {
   box.appendChild(tab);
 
   const root = el('div', 'vc-box root');
-  const stack = [root]; // stack[d+1] = контейнер для глибини d
+  const stack = [root]; // stack[d+1] = container for depth d
   for (const r of rows) {
     while (stack.length - 1 > r.d) stack.pop();
     const parent = stack[stack.length - 1];
@@ -999,8 +999,8 @@ function renderPanelC(box, rows, o) {
 
   box.appendChild(el('div', 'vc-foot' + (o.complete ? ' ok' : ''),
     o.complete
-      ? '✓ урок завершено — ' + o.total + ' файлів'
-      : 'збудовано ' + o.done + ' із ' + o.total + ' файлів'));
+      ? '✓ lesson complete — ' + o.total + ' files'
+      : 'built ' + o.done + ' of ' + o.total + ' files'));
 }
 
 function renderTree() {
@@ -1036,8 +1036,8 @@ function renderFragment() {
   renderTree();
 }
 
-// Автопроліт: відступи на початку рядка і skip-діапазони (коментарі,
-// докстрінги) вводити не треба
+// Auto-advance: leading indentation and skip ranges (comments,
+// docstrings) are not typed
 function advanceAuto() {
   const code = LESSON.fragments[state.frag].code;
   while (state.pos < code.length) {
@@ -1061,7 +1061,7 @@ function updateCursor() {
   updateProgressBar();
 }
 
-// Нотатка блоку, в якому зараз стоїть курсор; їде по вертикалі за курсором
+// Note for the block the cursor is in; follows the cursor vertically
 function updateStepNote() {
   const steps = LESSON.fragments[state.frag].steps || [];
   const s = steps.find(s => state.pos >= s.start && state.pos < s.end);
@@ -1076,7 +1076,7 @@ function updateStepNote() {
 function flashError() {
   const el = $('code');
   el.classList.remove('error-flash');
-  void el.offsetWidth; // перезапуск анімації
+  void el.offsetWidth; // restart the animation
   el.classList.add('error-flash');
 }
 
@@ -1087,7 +1087,7 @@ document.addEventListener('keydown', e => {
   if (state.pos >= code.length) return;
   let key = e.key;
   if (key === 'Enter') key = '\n';
-  if (key.length !== 1 && key !== '\n') return; // Shift, F5, стрілки — ігноруємо
+  if (key.length !== 1 && key !== '\n') return; // ignore Shift, F5, arrows
   e.preventDefault();
   state.startedAt ??= Date.now();
   state.keystrokes++;
@@ -1097,7 +1097,7 @@ document.addEventListener('keydown', e => {
     advanceAuto();
     updateCursor();
     checkFragmentDone();
-    if ($('results').hidden) saveProgress(); // після можливого переходу фрагмента
+    if ($('results').hidden) saveProgress(); // after a possible fragment switch
   } else {
     state.errors++;
     flashError();
@@ -1122,7 +1122,7 @@ function showResults(skipped) {
     ? Math.round(100 * (state.keystrokes - state.errors) / state.keystrokes)
     : 100;
   document.querySelector('#results h2').textContent =
-    skipped ? 'Урок зараховано (пропущено)' : 'Урок завершено';
+    skipped ? 'Lesson complete (skipped)' : 'Lesson complete';
   $('r-accuracy').textContent = acc + '%';
   $('r-time').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
   $('r-errors').textContent = state.errors;
@@ -1161,7 +1161,7 @@ $('next-btn').onclick = () => {
   $('next-btn').blur();
 };
 
-// --- Налаштування вигляду ---
+// --- Appearance settings ---
 function syncSettingsUI() {
   document.querySelectorAll('#settings-pop [data-variant]').forEach(b =>
     b.classList.toggle('active', b.dataset.variant === TREE_VARIANT));
@@ -1195,7 +1195,7 @@ document.querySelectorAll('#settings-pop [data-theme-opt]').forEach(b => {
   };
 });
 
-// клік повз попап — закрити
+// click outside the popover — close it
 document.addEventListener('click', e => {
   if (!$('settings').contains(e.target)) $('settings-pop').hidden = true;
 });
@@ -1208,10 +1208,10 @@ $('restart-btn').onclick = () => {
   $('results').hidden = true;
   $('main').hidden = false;
   renderFragment();
-  $('restart-btn').blur(); // інакше пробіл/Enter під час друку тиснутимуть кнопку
+  $('restart-btn').blur(); // otherwise Space/Enter while typing would press the button
 };
 
-// Відновлення незавершеної сесії цього уроку
+// Resume an unfinished session of this lesson
 function init() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); } catch {}
@@ -1225,7 +1225,7 @@ function init() {
     const upto = Math.min(saved.pos || 0, chars.length);
     for (let i = 0; i < upto; i++) chars[i].classList.add('correct');
     state.pos = upto;
-    advanceAuto(); // якщо збережена позиція впала на skip-діапазон
+    advanceAuto(); // in case the saved position landed on a skip range
     updateCursor();
   } else {
     renderFragment();

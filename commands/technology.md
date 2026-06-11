@@ -1,7 +1,7 @@
 ---
-description: Курс по технології в проекті — як вона інтегрована; нема в проекті — реальна інтеграція в гілці (за явною згодою)
-argument-hint: "[технологія, напр. redis]"
+description: A course on one technology in the project — how it is integrated; if absent — a real integration in a branch (with explicit consent)
+argument-hint: "[technology, e.g. redis]"
 ---
 
-Використай навичку technology (Skill tool): курс typing-уроків по
-технології в цьому проекті. Аргумент від користувача: $ARGUMENTS
+Use the technology skill (Skill tool): a course of typing lessons on
+a technology in this project. Argument from the user: $ARGUMENTS

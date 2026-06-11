@@ -1,7 +1,7 @@
 ---
-description: Курс typing-уроків по поточному проекту — навчитись писати його з нуля
-argument-hint: "[фокус-шлях, напр. src/api]"
+description: A course of typing lessons for the current project — learn to write it from scratch
+argument-hint: "[focus path, e.g. src/api]"
 ---
 
-Використай навичку how-to (Skill tool), щоб створити або продовжити курс
-typing-уроків по цьому проекту. Фокус від користувача: $ARGUMENTS
+Use the how-to skill (Skill tool) to create or continue a course of
+typing lessons for this project. Focus from the user: $ARGUMENTS

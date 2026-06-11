@@ -1,42 +1,61 @@
 # Vibe Typing
 
-Плагін Claude Code: навчальний typing-тренажер на базі твого власного
-коду. Самодостатні HTML-уроки — передрук коду з простими поясненнями
-українською та покроковим гайдом по блоках.
+[Українська](README.uk.md)
 
-Команди:
+A Claude Code plugin: a learning typing trainer built on your own code.
+Self-contained HTML lessons — you retype real project code with plain-words
+explanations and a step-by-step guide for every block.
 
-- `/vibe-typing:practicum` — урок з diff поточного чекпоінта
-- `/vibe-typing:how-to` — курс по існуючому проекту: «як написати його
-  з нуля», крок за кроком
-- `/vibe-typing:technology [назва]` — курс по технології: без
-  аргументу — інвентаризація стеку; технологія є в проекті — курс
-  «як вона інтегрована»; нема — реальна інтеграція в окремій гілці
-  (за явною згодою) і курс з її diff
+Lesson content (explanations, notes, course plans) is generated in **your
+native language** — the language you talk to Claude in. The lesson page UI
+is English.
 
-Спеки: `docs/superpowers/specs/`
+## Commands
 
-## Встановлення
+- `/vibe-typing:practicum` — a lesson from the current checkpoint diff
+- `/vibe-typing:how-to` — a course for an existing project: "how to write
+  it from scratch", step by step
+- `/vibe-typing:technology [name]` — a course on one technology: with no
+  argument — a stack inventory; if the technology is used in the project —
+  a course on "how it is integrated"; if absent — a real integration in
+  a separate branch (with your explicit consent) and a course from its diff
+
+## Install
 
 ```bash
 claude plugin marketplace add ~/Programming/vibe-typing
 claude plugin install vibe-typing@vibe-typing-local
 ```
 
-## Використання
+## Usage
 
-- `/vibe-typing:practicum` — незакомічені зміни або останній коміт;
-  `/vibe-typing:practicum HEAD~3..` — діапазон комітів.
-- `/vibe-typing:how-to` — перший виклик аналізує проект, показує план
-  курсу і знахідки, після підтвердження пише `.practicum/course.md`
-  і генерує урок 01; кожен наступний виклик — наступний урок.
-  `/vibe-typing:how-to src/api` — курс лише по підсистемі.
+- `/vibe-typing:practicum` — uncommitted changes or the last commit;
+  `/vibe-typing:practicum HEAD~3..` — a commit range.
+- `/vibe-typing:how-to` — the first call analyzes the project, shows the
+  course plan and findings; after confirmation it writes
+  `.practicum/course.md` and generates lesson 01; every next call —
+  the next lesson. `/vibe-typing:how-to src/api` — course for one
+  subsystem only.
+- `/vibe-typing:technology redis` — a course on how Redis is integrated
+  in this project (state: `.practicum/course-redis.md`).
 
-Уроки: `.practicum/lessons/*.html` у поточному проекті.
+Lessons land in `.practicum/lessons/*.html` of the current project.
 
-## Розробка
+## The lesson page
 
-Зібрати тестовий урок з golden-файла:
+- Type the code character by character; indentation, comments and
+  docstrings are auto-skipped (shown, not typed).
+- A "now writing" note follows the cursor and explains the current block.
+- The project tree on the left grows as you type — files appear, new
+  folders are announced, progress is counted across the whole course.
+- `← back` / `next →` navigate fragments; `⟲ restart` resets the lesson;
+  unfinished progress resumes automatically.
+- `⚙` — appearance settings: tree panel style (IDE / terminal / scaffold)
+  and theme (graphite / mocha / ink). Choices persist in localStorage.
+
+## Development
+
+Build a test lesson from the golden file:
 
 ```bash
 python3 - <<'EOF'
@@ -48,10 +67,13 @@ EOF
 xdg-open /tmp/practicum-test.html
 ```
 
-Установка копіює плагін у кеш — правки навичок у репо НЕ підхоплюються
-живо. Після змін: підніми `version` у `.claude-plugin/plugin.json`
-(оновлення спрацьовує лише при зміні версії) і виконай:
+Installation copies the plugin into a cache — edits in the repo are NOT
+picked up live. After changes: bump `version` in
+`.claude-plugin/plugin.json` (updates apply only on a version change) and
+run:
 
 ```bash
 claude plugin update vibe-typing@vibe-typing-local
 ```
+
+Specs: `docs/superpowers/specs/`
