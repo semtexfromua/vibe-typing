@@ -174,6 +174,11 @@
     opacity: 0.5;
   }
 
+  .char.skip {                         /* коментар/докстрінг: читаємо, не друкуємо */
+    color: color-mix(in oklab, var(--ok) 60%, var(--dim));
+    font-style: italic;
+  }
+
   .char.cursor {
     background: var(--accent);
     color: var(--bg);
@@ -308,7 +313,7 @@
 <header>
   <h1 id="title"></h1>
   <div class="header-right">
-    <button id="skip-btn" type="button" title="зарахувати урок як пройдений">пропустити ✓</button>
+    <button id="skip-btn" type="button" title="пропустити поточний фрагмент">пропустити →</button>
     <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
     <div id="progress"></div>
   </div>
@@ -384,9 +389,11 @@ function renderFragment() {
   const codeEl = $('code');
   codeEl.innerHTML = '';
   chars = [];
-  [...f.code].forEach(ch => {
+  const skips = f.skips || [];
+  [...f.code].forEach((ch, i) => {
     const span = document.createElement('span');
     span.className = 'char';
+    if (skips.some(s => i >= s.start && i < s.end)) span.classList.add('skip');
     span.textContent = ch === '\n' ? '⏎\n' : ch;
     codeEl.appendChild(span);
     chars.push(span);
@@ -396,10 +403,12 @@ function renderFragment() {
   updateCursor();
 }
 
-// Автоввід відступів: пробіли на початку рядка вводити не треба
+// Автопроліт: відступи на початку рядка і skip-діапазони (коментарі,
+// докстрінги) вводити не треба
 function advanceAuto() {
   const code = LESSON.fragments[state.frag].code;
   while (state.pos < code.length) {
+    if (chars[state.pos].classList.contains('skip')) { state.pos++; continue; }
     const atLineStart = state.pos === 0 || code[state.pos - 1] === '\n';
     const prevAuto = state.pos > 0 && chars[state.pos - 1].classList.contains('auto');
     if (code[state.pos] === ' ' && (atLineStart || prevAuto)) {
@@ -499,7 +508,15 @@ function showResults(skipped) {
 }
 
 $('skip-btn').onclick = () => {
-  if ($('results').hidden) showResults(true);
+  if ($('results').hidden) {
+    if (state.frag + 1 < LESSON.fragments.length) {
+      state.frag++;
+      renderFragment();
+      saveProgress();
+    } else {
+      showResults(true);
+    }
+  }
   $('skip-btn').blur();
 };
 
@@ -526,6 +543,7 @@ function init() {
     const upto = Math.min(saved.pos || 0, chars.length);
     for (let i = 0; i < upto; i++) chars[i].classList.add('correct');
     state.pos = upto;
+    advanceAuto(); // якщо збережена позиція впала на skip-діапазон
     updateCursor();
   } else {
     renderFragment();
