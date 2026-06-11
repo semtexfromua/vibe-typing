@@ -115,9 +115,9 @@
     background: var(--surface);
   }
 
-  .header-right { display: flex; gap: 10px; align-items: center; }
+  .header-right { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
 
-  #restart-btn, #back-btn, #next-btn {
+  #restart-btn, #back-btn, #next-btn, #settings-btn {
     font-family: var(--sans);
     font-size: 12.5px;
     color: var(--subtext);
@@ -126,12 +126,57 @@
     border-radius: 999px;
     padding: 4px 12px;
     cursor: pointer;
+    white-space: nowrap;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
-  #restart-btn:hover, #back-btn:hover:enabled, #next-btn:hover:enabled {
+  #restart-btn:hover, #back-btn:hover:enabled, #next-btn:hover:enabled,
+  #settings-btn:hover {
     color: var(--text); border-color: var(--dim);
   }
   #back-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Налаштування вигляду: попап під шапкою */
+  #settings { position: relative; }
+  #settings-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: grid;
+    gap: 10px;
+    min-width: 230px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .set-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .set-options { display: flex; gap: 4px; }
+  .set-options button {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--subtext);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .set-options button:hover { color: var(--text); border-color: var(--dim); }
+  .set-options button.active {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
 
   /* тонкий прогрес уроку по символах */
   #lesson-progress {
@@ -683,6 +728,27 @@
     <button id="next-btn" type="button" title="наступний фрагмент (останній — завершує урок)">вперед →</button>
     <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
     <div id="progress"></div>
+    <div id="settings">
+      <button id="settings-btn" type="button" title="налаштування вигляду">⚙</button>
+      <div id="settings-pop" hidden>
+        <div class="set-group">
+          <div class="set-label">дерево</div>
+          <div class="set-options">
+            <button type="button" data-variant="a">IDE</button>
+            <button type="button" data-variant="b">термінал</button>
+            <button type="button" data-variant="c">каркас</button>
+          </div>
+        </div>
+        <div class="set-group">
+          <div class="set-label">тема</div>
+          <div class="set-options">
+            <button type="button" data-theme-opt="graphite">graphite</button>
+            <button type="button" data-theme-opt="mocha">mocha</button>
+            <button type="button" data-theme-opt="ink">ink</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 <main id="main">
@@ -722,7 +788,7 @@ const THEME = localStorage.getItem('practicum-theme') || 'graphite';
 document.documentElement.dataset.theme = THEME;
 
 // 'a' — IDE-мінімалізм+, 'b' — термінал, 'c' — каркас
-const TREE_VARIANT = localStorage.getItem('practicum-tree-variant') || 'a';
+let TREE_VARIANT = localStorage.getItem('practicum-tree-variant') || 'a';
 
 const $ = id => document.getElementById(id);
 const state = {
@@ -1094,6 +1160,45 @@ $('next-btn').onclick = () => {
   }
   $('next-btn').blur();
 };
+
+// --- Налаштування вигляду ---
+function syncSettingsUI() {
+  document.querySelectorAll('#settings-pop [data-variant]').forEach(b =>
+    b.classList.toggle('active', b.dataset.variant === TREE_VARIANT));
+  document.querySelectorAll('#settings-pop [data-theme-opt]').forEach(b =>
+    b.classList.toggle('active', b.dataset.themeOpt === document.documentElement.dataset.theme));
+}
+
+$('settings-btn').onclick = () => {
+  const pop = $('settings-pop');
+  pop.hidden = !pop.hidden;
+  if (!pop.hidden) syncSettingsUI();
+  $('settings-btn').blur();
+};
+
+document.querySelectorAll('#settings-pop [data-variant]').forEach(b => {
+  b.onclick = () => {
+    TREE_VARIANT = b.dataset.variant;
+    localStorage.setItem('practicum-tree-variant', TREE_VARIANT);
+    renderTree();
+    syncSettingsUI();
+    b.blur();
+  };
+});
+
+document.querySelectorAll('#settings-pop [data-theme-opt]').forEach(b => {
+  b.onclick = () => {
+    document.documentElement.dataset.theme = b.dataset.themeOpt;
+    localStorage.setItem('practicum-theme', b.dataset.themeOpt);
+    syncSettingsUI();
+    b.blur();
+  };
+});
+
+// клік повз попап — закрити
+document.addEventListener('click', e => {
+  if (!$('settings').contains(e.target)) $('settings-pop').hidden = true;
+});
 
 $('restart-btn').onclick = () => {
   localStorage.removeItem(RESUME_KEY);
