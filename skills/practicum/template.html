@@ -85,7 +85,7 @@
 
   .header-right { display: flex; gap: 10px; align-items: center; }
 
-  #restart-btn, #skip-btn {
+  #restart-btn, #back-btn, #next-btn {
     font-family: var(--sans);
     font-size: 12.5px;
     color: var(--subtext);
@@ -96,7 +96,10 @@
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
-  #restart-btn:hover, #skip-btn:hover { color: var(--text); border-color: var(--dim); }
+  #restart-btn:hover, #back-btn:hover:enabled, #next-btn:hover:enabled {
+    color: var(--text); border-color: var(--dim);
+  }
+  #back-btn:disabled { opacity: 0.4; cursor: default; }
 
   /* тонкий прогрес уроку по символах */
   #lesson-progress {
@@ -320,7 +323,8 @@
 <header>
   <h1 id="title"></h1>
   <div class="header-right">
-    <button id="skip-btn" type="button" title="пропустити поточний фрагмент">пропустити →</button>
+    <button id="back-btn" type="button" title="попередній фрагмент">← назад</button>
+    <button id="next-btn" type="button" title="наступний фрагмент (останній — завершує урок)">вперед →</button>
     <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
     <div id="progress"></div>
   </div>
@@ -406,6 +410,7 @@ function renderFragment() {
     chars.push(span);
   });
   state.pos = 0;
+  $('back-btn').disabled = state.frag === 0;
   advanceAuto();
   updateCursor();
 }
@@ -515,17 +520,23 @@ function showResults(skipped) {
   localStorage.setItem('practicum-history', JSON.stringify(history));
 }
 
-$('skip-btn').onclick = () => {
+function gotoFragment(i) {
+  state.frag = i;
+  renderFragment();
+  saveProgress();
+}
+
+$('back-btn').onclick = () => {
+  if ($('results').hidden && state.frag > 0) gotoFragment(state.frag - 1);
+  $('back-btn').blur();
+};
+
+$('next-btn').onclick = () => {
   if ($('results').hidden) {
-    if (state.frag + 1 < LESSON.fragments.length) {
-      state.frag++;
-      renderFragment();
-      saveProgress();
-    } else {
-      showResults(true);
-    }
+    if (state.frag + 1 < LESSON.fragments.length) gotoFragment(state.frag + 1);
+    else showResults(true);
   }
-  $('skip-btn').blur();
+  $('next-btn').blur();
 };
 
 $('restart-btn').onclick = () => {
