@@ -85,7 +85,7 @@
 
   .header-right { display: flex; gap: 10px; align-items: center; }
 
-  #restart-btn {
+  #restart-btn, #skip-btn {
     font-family: var(--sans);
     font-size: 12.5px;
     color: var(--subtext);
@@ -96,7 +96,7 @@
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
-  #restart-btn:hover { color: var(--text); border-color: var(--dim); }
+  #restart-btn:hover, #skip-btn:hover { color: var(--text); border-color: var(--dim); }
 
   /* тонкий прогрес уроку по символах */
   #lesson-progress {
@@ -308,6 +308,7 @@
 <header>
   <h1 id="title"></h1>
   <div class="header-right">
+    <button id="skip-btn" type="button" title="зарахувати урок як пройдений">пропустити ✓</button>
     <button id="restart-btn" type="button" title="скинути прогрес і почати з початку">⟲ заново</button>
     <div id="progress"></div>
   </div>
@@ -336,6 +337,14 @@
 </div>
 <script>
 const LESSON = __LESSON_JSON__;
+
+// Друкарські символи, яких нема на клавіатурі → ASCII-аналоги.
+// Заміни строго 1:1, щоб офсети steps лишались чинними.
+const CHAR_MAP = { '—':'-', '–':'-', '−':'-', '\u00A0':' ',
+                   '“':'"', '”':'"', '„':'"', '«':'"', '»':'"',
+                   '‘':"'", '’':"'", '‚':"'" };
+for (const f of LESSON.fragments)
+  f.code = f.code.replace(/[—–−\u00A0“”„«»‘’‚]/g, c => CHAR_MAP[c]);
 
 const $ = id => document.getElementById(id);
 const state = {
@@ -463,12 +472,14 @@ function checkFragmentDone() {
   }
 }
 
-function showResults() {
+function showResults(skipped) {
   $('main').hidden = true;
-  const secs = Math.round((Date.now() - state.startedAt) / 1000);
+  const secs = state.startedAt ? Math.round((Date.now() - state.startedAt) / 1000) : 0;
   const acc = state.keystrokes
     ? Math.round(100 * (state.keystrokes - state.errors) / state.keystrokes)
     : 100;
+  document.querySelector('#results h2').textContent =
+    skipped ? 'Урок зараховано (пропущено)' : 'Урок завершено';
   $('r-accuracy').textContent = acc + '%';
   $('r-time').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
   $('r-errors').textContent = state.errors;
@@ -481,10 +492,16 @@ function showResults() {
   history.push({
     title: LESSON.title, project: LESSON.project, date: LESSON.date,
     accuracy: acc, seconds: secs, errors: state.errors,
+    skipped: !!skipped,
     finishedAt: new Date().toISOString(),
   });
   localStorage.setItem('practicum-history', JSON.stringify(history));
 }
+
+$('skip-btn').onclick = () => {
+  if ($('results').hidden) showResults(true);
+  $('skip-btn').blur();
+};
 
 $('restart-btn').onclick = () => {
   localStorage.removeItem(RESUME_KEY);
