@@ -111,6 +111,58 @@
     z-index: 5;
   }
 
+  /* Дерево проекту: росте по мірі друку; тільки на широких екранах */
+  #tree {
+    display: none;
+    position: fixed;
+    top: 132px;
+    left: calc((100vw - 880px) / 2 - 300px);
+    width: 272px;
+    max-height: calc(100vh - 172px);
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.9;
+    color: var(--subtext);
+  }
+  @media (min-width: 1480px) { #tree { display: block; } }
+
+  #tree .tree-root {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.85;
+    margin-bottom: 8px;
+  }
+
+  #tree .node { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tree .node.dir { color: var(--dim); }
+  #tree .node.file::before { content: "· "; color: var(--dim); }
+  #tree .node.file.done { color: var(--subtext); }
+  #tree .node.file.done::before { content: "✓ "; color: var(--ok); }
+  #tree .node.file.current { color: var(--text); }
+  #tree .node.file.current::before { content: "› "; color: var(--accent); }
+
+  #tree .node.appear { animation: node-appear 0.45s ease-out; }
+  @keyframes node-appear {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  #tree-action {
+    margin-top: 10px;
+    color: var(--ok);
+    opacity: 0;
+  }
+  #tree-action.show { animation: action-fade 2.6s ease forwards; }
+  @keyframes action-fade {
+    0%   { opacity: 0; }
+    12%  { opacity: 0.9; }
+    70%  { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
   #explanation {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -319,6 +371,11 @@
 </head>
 <body>
 <div id="lesson-progress"></div>
+<nav id="tree">
+  <div class="tree-root" id="tree-root"></div>
+  <div id="tree-nodes"></div>
+  <div id="tree-action"></div>
+</nav>
 <div class="wrap">
 <header>
   <h1 id="title"></h1>
@@ -364,7 +421,7 @@ for (const f of LESSON.fragments)
 
 const $ = id => document.getElementById(id);
 const state = {
-  frag: 0, pos: 0,
+  frag: 0, pos: 0, maxFrag: 0,
   keystrokes: 0, errors: 0,
   startedAt: null,
 };
@@ -385,14 +442,79 @@ function updateProgressBar() {
 
 function saveProgress() {
   localStorage.setItem(RESUME_KEY, JSON.stringify({
-    frag: state.frag, pos: state.pos,
+    frag: state.frag, pos: state.pos, maxFrag: state.maxFrag,
     keystrokes: state.keystrokes, errors: state.errors,
     elapsed: state.startedAt ? Date.now() - state.startedAt : 0,
   }));
 }
 
+// --- Дерево проекту: файли попередніх уроків (LESSON.tree) + файли
+// відвіданих фрагментів; раз з'явившись, вузол не зникає ---
+const treeShown = new Set(); // ключі вузлів, що вже з'являлись (анімація)
+
+function fragPath(f) { return f.file.split(' (')[0].trim(); }
+
+function treeFiles() {
+  const files = [];
+  const push = (path, cls) => {
+    const ex = files.find(x => x.path === path);
+    if (ex) { if (cls === 'current') ex.cls = 'current'; }
+    else files.push({ path, cls });
+  };
+  (LESSON.tree || []).forEach(p => push(p, 'done'));
+  const last = Math.min(state.maxFrag, LESSON.fragments.length - 1);
+  for (let i = 0; i <= last; i++) {
+    const cls = i === state.frag && $('results').hidden ? 'current' : 'done';
+    push(fragPath(LESSON.fragments[i]), cls);
+  }
+  return files;
+}
+
+function renderTree() {
+  $('tree-root').textContent = LESSON.project + '/';
+  const rows = [];
+  const dirs = new Set();
+  for (const f of treeFiles()) {
+    const parts = f.path.split('/');
+    for (let d = 1; d < parts.length; d++) {
+      const dir = parts.slice(0, d).join('/');
+      if (!dirs.has(dir)) {
+        dirs.add(dir);
+        rows.push({ key: dir, label: parts[d - 1] + '/', cls: 'dir', depth: d - 1 });
+      }
+    }
+    rows.push({ key: f.path, label: parts[parts.length - 1],
+                cls: 'file ' + f.cls, depth: parts.length - 1 });
+  }
+  const box = $('tree-nodes');
+  box.innerHTML = '';
+  const newDirs = [];
+  for (const r of rows) {
+    const el = document.createElement('div');
+    el.className = 'node ' + r.cls;
+    el.style.paddingLeft = (r.depth * 14) + 'px';
+    el.textContent = r.label;
+    if (!treeShown.has(r.key)) {
+      el.classList.add('appear');
+      treeShown.add(r.key);
+      if (r.cls === 'dir') newDirs.push(r.key);
+    }
+    box.appendChild(el);
+  }
+  if (newDirs.length) treeAction('+ mkdir ' + newDirs[newDirs.length - 1]);
+}
+
+function treeAction(text) {
+  const el = $('tree-action');
+  el.textContent = text;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
 function renderFragment() {
   const f = LESSON.fragments[state.frag];
+  state.maxFrag = Math.max(state.maxFrag, state.frag);
   $('title').textContent = LESSON.title;
   $('progress').textContent = (state.frag + 1) + ' / ' + LESSON.fragments.length;
   $('explanation').textContent = f.explanation;
@@ -413,6 +535,7 @@ function renderFragment() {
   $('back-btn').disabled = state.frag === 0;
   advanceAuto();
   updateCursor();
+  renderTree();
 }
 
 // Автопроліт: відступи на початку рядка і skip-діапазони (коментарі,
@@ -506,6 +629,7 @@ function showResults(skipped) {
   $('r-time').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
   $('r-errors').textContent = state.errors;
   $('results').hidden = false;
+  renderTree();
   $('lesson-progress').style.width = '100%';
   localStorage.removeItem(RESUME_KEY);
   let history;
@@ -541,7 +665,8 @@ $('next-btn').onclick = () => {
 
 $('restart-btn').onclick = () => {
   localStorage.removeItem(RESUME_KEY);
-  state.frag = 0; state.pos = 0; state.keystrokes = 0; state.errors = 0;
+  state.frag = 0; state.pos = 0; state.maxFrag = 0;
+  state.keystrokes = 0; state.errors = 0;
   state.startedAt = null;
   $('results').hidden = true;
   $('main').hidden = false;
@@ -555,6 +680,7 @@ function init() {
   try { saved = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); } catch {}
   if (saved && saved.frag < LESSON.fragments.length) {
     state.frag = saved.frag;
+    state.maxFrag = saved.maxFrag ?? saved.frag;
     state.keystrokes = saved.keystrokes || 0;
     state.errors = saved.errors || 0;
     if (saved.elapsed) state.startedAt = Date.now() - saved.elapsed;
