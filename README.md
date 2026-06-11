@@ -10,6 +10,8 @@ Lesson content (explanations, notes, course plans) is generated in **your
 native language** — the language you talk to Claude in. The lesson page UI
 is English.
 
+![Typing a lesson: the project tree grows as you type](docs/media/demo.gif)
+
 ## Commands
 
 - `/vibe-typing:practicum` — a lesson from the current checkpoint diff
@@ -23,8 +25,15 @@ is English.
 ## Install
 
 ```bash
-claude plugin marketplace add ~/Programming/vibe-typing
-claude plugin install vibe-typing@vibe-typing-local
+claude plugin marketplace add semtexfromua/vibe-typing
+claude plugin install vibe-typing@vibe-typing
+```
+
+From a local clone (for development):
+
+```bash
+claude plugin marketplace add /path/to/vibe-typing
+claude plugin install vibe-typing@vibe-typing
 ```
 
 ## Usage
@@ -50,8 +59,18 @@ Lessons land in `.practicum/lessons/*.html` of the current project.
   folders are announced, progress is counted across the whole course.
 - `← back` / `next →` navigate fragments; `⟲ restart` resets the lesson;
   unfinished progress resumes automatically.
+- After finishing — `↺ review lesson`: re-read every fragment with all
+  notes visible as bright comments above their code blocks.
 - `⚙` — appearance settings: tree panel style (IDE / terminal / scaffold)
   and theme (graphite / mocha / ink). Choices persist in localStorage.
+
+Review mode:
+
+![Review mode: every note visible above its block](docs/media/review.png)
+
+Themes and tree styles:
+
+![Mocha theme, terminal tree, appearance settings](docs/media/themes.png)
 
 ## Development
 

@@ -10,6 +10,8 @@
 мовою користувача** — тією, якою ти спілкуєшся з Claude. UI сторінки
 уроку — англійською.
 
+![Друк уроку: дерево проекту росте по мірі друку](docs/media/demo.gif)
+
 ## Команди
 
 - `/vibe-typing:practicum` — урок з diff поточного чекпоінта
@@ -23,8 +25,15 @@
 ## Встановлення
 
 ```bash
-claude plugin marketplace add ~/Programming/vibe-typing
-claude plugin install vibe-typing@vibe-typing-local
+claude plugin marketplace add semtexfromua/vibe-typing
+claude plugin install vibe-typing@vibe-typing
+```
+
+З локального клона (для розробки):
+
+```bash
+claude plugin marketplace add /шлях/до/vibe-typing
+claude plugin install vibe-typing@vibe-typing
 ```
 
 ## Використання
@@ -49,9 +58,19 @@ claude plugin install vibe-typing@vibe-typing-local
   теки анонсуються, прогрес рахується по всьому курсу.
 - `← back` / `next →` — навігація фрагментами; `⟲ restart` — скинути
   урок; незавершений прогрес відновлюється автоматично.
+- Після завершення — `↺ review lesson`: перечитати всі фрагменти
+  з усіма нотатками у вигляді яскравих коментарів над блоками коду.
 - `⚙` — налаштування вигляду: стиль панелі дерева (IDE / terminal /
   scaffold) і тема (graphite / mocha / ink). Вибір зберігається
   в localStorage.
+
+Режим перегляду:
+
+![Review mode: всі нотатки видимі над своїми блоками](docs/media/review.png)
+
+Теми і стилі дерева:
+
+![Тема mocha, дерево terminal, налаштування вигляду](docs/media/themes.png)
 
 ## Розробка
 
