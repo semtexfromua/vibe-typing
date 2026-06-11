@@ -1,6 +1,6 @@
 {
   "name": "vibe-typing",
   "description": "A learning typing trainer on your own code: checkpoint-diff lessons (practicum), project courses (how-to), technology courses (technology)",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": { "name": "Maxim Rabchun", "email": "semtexfromua001@gmail.com" }
 }
