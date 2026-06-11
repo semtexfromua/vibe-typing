@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Practicum</title>
 <style>
-  /* Палітра "Graphite": низькохромні нейтрали + теплий бурштиновий акцент */
   :root {
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Теми. Дефолт — "Graphite": низькохромні нейтрали + теплий бурштиновий
+     акцент. Зміна: localStorage 'practicum-theme' (graphite/mocha/ink) */
+  :root, [data-theme="graphite"] {
     --bg:        #121417;
     --surface:   #191c21;
     --surface-2: #20242b;
@@ -17,8 +23,34 @@
     --accent:    #d6a35c;
     --ok:        #97c397;
     --err:       #d4737a;
-    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Catppuccin Mocha */
+  [data-theme="mocha"] {
+    --bg:        #1e1e2e;
+    --surface:   #24243a;
+    --surface-2: #2a2a40;
+    --border:    #313244;
+    --text:      #cdd6f4;
+    --subtext:   #a6adc8;
+    --dim:       #585b70;
+    --accent:    #cba6f7;
+    --ok:        #a6e3a1;
+    --err:       #f38ba8;
+  }
+
+  /* Ink — холодна, майже монохромна */
+  [data-theme="ink"] {
+    --bg:        #101418;
+    --surface:   #161b21;
+    --surface-2: #1c222a;
+    --border:    #242c36;
+    --text:      #ccd5de;
+    --subtext:   #7f8b99;
+    --dim:       #45505d;
+    --accent:    #7fb4d8;
+    --ok:        #8ec9a8;
+    --err:       #d07f86;
   }
 
   * { box-sizing: border-box; }
@@ -111,8 +143,8 @@
     z-index: 5;
   }
 
-  /* Дерево проекту (варіант «термінал» з дизайн-хендофа):
-     росте по мірі друку; тільки на широких екранах */
+  /* Дерево проекту: позиціювання; рендер — варіанти A/B/C нижче
+     (вибір: localStorage 'practicum-tree-variant') */
   #tree {
     display: none;
     position: fixed;
@@ -121,14 +153,19 @@
     width: 272px;
     max-height: calc(100vh - 172px);
     overflow-y: auto;
+  }
+  @media (min-width: 1480px) { #tree { display: block; } }
+
+  /* ---------- панель дерева: спільна база ---------- */
+  .tp {
+    width: 272px;
     font-family: var(--mono);
     font-size: 12.5px;
     color: var(--subtext);
   }
-  @media (min-width: 1480px) { #tree { display: block; } }
 
   /* поява нового вузла: 350ms, легкий виїзд зліва */
-  #tree .appear { animation: tp-appear 0.35s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+  .tp .appear { animation: tp-appear 0.35s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
   @keyframes tp-appear {
     from { opacity: 0; transform: translateX(-8px); }
   }
@@ -139,13 +176,135 @@
     50%      { opacity: 0.4; }
   }
 
+  /* анонс (бейдж «нова» / команда mkdir): з'являється і гасне */
+  @keyframes tp-announce {
+    0%   { opacity: 0; }
+    10%  { opacity: 1; }
+    75%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tp .appear { animation: none; }
+    .tp .va-state.cur, .tp .vb-mark.cur { animation: none !important; }
+  }
+
+  /* ---------- варіант A — «IDE-мінімалізм+» ---------- */
+  .va-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .va-proj {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .va-count {
+    font-size: 11px;
+    color: var(--subtext);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .va-count span { color: var(--dim); }
+
+  /* лінія прогресу курсу: 2px, бурштин → зелена коли все готово */
+  .va-meter {
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .va-meter i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+  .va.complete .va-meter i { background: var(--ok); }
+
+  .va-node {
+    display: flex;
+    align-items: center;
+    height: 26px;
+    border-radius: 6px;
+    padding: 0 8px 0 6px;
+    white-space: nowrap;
+  }
+
+  /* направляюча вкладеності: 1px лінія на кожен рівень (14px/рівень) */
+  .va-guide {
+    flex: 0 0 14px;
+    align-self: stretch;
+    background: linear-gradient(var(--border), var(--border)) 4px 0 / 1px 100% no-repeat;
+  }
+
+  .va-name { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+  .va-node.dir { color: var(--dim); }
+  .va-arrow {
+    flex: 0 0 auto;
+    font-size: 8px;
+    margin-right: 6px;
+    color: var(--dim);
+    opacity: 0.8;
+  }
+
+  .va-state {
+    margin-left: auto;
+    padding-left: 10px;
+    font-size: 11px;
+    flex: 0 0 auto;
+  }
+  .va-state.ok  { color: var(--ok); opacity: 0.75; }
+  .va-state.cur { color: var(--accent); animation: tp-pulse 1.1s ease-in-out infinite; }
+
+  .va-node.file.done .va-name { color: var(--subtext); }
+
+  .va-node.file.current {
+    background: color-mix(in oklab, var(--accent) 9%, transparent);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .va-node.file.current .va-name { color: var(--text); }
+
+  /* нова тека: ім'я підсвічене + бейдж, який гасне за 2.6s */
+  .va-node.dir.announce .va-name { color: var(--accent); }
+  .va-new {
+    margin-left: auto;
+    flex: 0 0 auto;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--border));
+    border-radius: 999px;
+    padding: 1px 7px;
+    animation: tp-announce 2.6s ease forwards;
+  }
+
+  .va-foot {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.02em;
+  }
+  .va-foot.ok { color: var(--ok); }
+
+  /* ---------- варіант B — «термінал / будівництво» ---------- */
   .vb-frame {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 14px 16px 12px;
   }
-
   .vb-prompt {
     color: var(--accent);
     margin-bottom: 2px;
@@ -168,7 +327,6 @@
     height: 25px;
     white-space: nowrap;
   }
-
   .vb-mark {
     flex: 0 0 10px;
     text-align: center;
@@ -182,7 +340,6 @@
   .vb-node.dir { color: var(--dim); }
   .vb-node.file.done .vb-name { color: var(--subtext); }
   .vb-node.file.current .vb-name { color: var(--text); }
-
   .vb-name { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
   /* команда mkdir: з'являється і гасне за 2.6s */
@@ -194,15 +351,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    animation: tp-announce 2.6s ease forwards;
   }
   .vb-cmd .dollar { color: var(--dim); margin-right: 6px; }
-  .vb-cmd.fade { animation: vb-fade 2.6s ease forwards; }
-  @keyframes vb-fade {
-    0%   { opacity: 0; }
-    10%  { opacity: 1; }
-    75%  { opacity: 1; }
-    100% { opacity: 0; }
-  }
 
   .vb-stat {
     margin-top: 10px;
@@ -215,9 +366,104 @@
   }
   .vb-stat.ok { color: var(--ok); }
 
+  /* ---------- варіант C — «каркас» ---------- */
+  .vc { font-size: 12px; }
+
+  .vc-tab {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .vc-tab .vc-proj {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vc-tab .vc-pct {
+    font-size: 11px;
+    color: var(--subtext);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .vc-tab .vc-pct.ok { color: var(--ok); }
+
+  .vc-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px;
+    display: grid;
+    gap: 4px;
+  }
+  .vc.complete > .vc-box.root {
+    border-color: color-mix(in oklab, var(--ok) 30%, var(--border));
+  }
+
+  .vc-dir {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 7px 7px;
+    margin-top: 7px;
+    display: grid;
+    gap: 4px;
+  }
+  .vc-label {
+    position: absolute;
+    top: -8px;
+    left: 8px;
+    background: var(--bg);
+    padding: 0 6px;
+    font-size: 10.5px;
+    line-height: 15px;
+    color: var(--dim);
+    letter-spacing: 0.02em;
+  }
+
+  /* нова тека = пунктирний каркас; твердне при наступному рендері */
+  .vc-dir.fresh {
+    border-style: dashed;
+    border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  }
+  .vc-dir.fresh > .vc-label { color: var(--accent); }
+
+  .vc-file {
+    height: 23px;
+    line-height: 23px;
+    padding: 0 8px;
+    border-radius: 5px;
+    color: var(--dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vc-file.done { background: var(--surface); color: var(--subtext); }
+  .vc-file.current {
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    box-shadow: inset 2px 0 0 var(--accent);
+    color: var(--text);
+  }
+
+  .vc-foot {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .vc-foot.ok { color: var(--ok); }
+
+  /* поява контейнера — м'якше, ніж у рядка */
+  .vc .appear { animation: vc-appear 0.4s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+  @keyframes vc-appear {
+    from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  }
   @media (prefers-reduced-motion: reduce) {
-    #tree .appear { animation: none; }
-    .vb-mark.cur { animation: none !important; }
+    .vc .appear { animation: none; }
   }
 
   #explanation {
@@ -472,6 +718,12 @@ const CHAR_MAP = { '—':'-', '–':'-', '−':'-', '\u00A0':' ',
 for (const f of LESSON.fragments)
   f.code = f.code.replace(/[—–−\u00A0“”„«»‘’‚]/g, c => CHAR_MAP[c]);
 
+const THEME = localStorage.getItem('practicum-theme') || 'graphite';
+document.documentElement.dataset.theme = THEME;
+
+// 'a' — IDE-мінімалізм+, 'b' — термінал, 'c' — каркас
+const TREE_VARIANT = localStorage.getItem('practicum-tree-variant') || 'a';
+
 const $ = id => document.getElementById(id);
 const state = {
   frag: 0, pos: 0, maxFrag: 0,
@@ -536,7 +788,7 @@ function el(tag, cls, text) {
   return n;
 }
 
-function renderTree() {
+function treeRowsData() {
   const rows = [];
   const dirs = new Set();
   for (const f of treeFiles()) {
@@ -551,38 +803,92 @@ function renderTree() {
     rows.push({ key: f.path, l: parts[parts.length - 1], t: 'f',
                 d: parts.length - 1, st: f.cls });
   }
-  const fresh = new Set(rows.filter(r => !treeShown.has(r.key)).map(r => r.key));
-  fresh.forEach(k => treeShown.add(k));
-  const freshDirs = rows.filter(r => r.t === 'd' && fresh.has(r.key));
+  // fresh = вузол з'являється вперше → анімація появи + анонс теки
+  for (const r of rows) {
+    if (!treeShown.has(r.key)) { r.fresh = true; treeShown.add(r.key); }
+  }
+  return rows;
+}
 
-  const doneN = rows.filter(r => r.t === 'f' && r.st === 'done').length;
-  const complete = !$('results').hidden;
+function treeOpts(rows) {
+  const files = rows.filter(r => r.t === 'f');
+  return {
+    project: LESSON.project,
+    done: files.filter(r => r.st === 'done').length,
+    total: LESSON.treeTotal || TREE_TOTAL,
+    dirs: rows.filter(r => r.t === 'd').length,
+    complete: !$('results').hidden,
+  };
+}
 
-  const box = $('tree');
+/* ---------- A — IDE-мінімалізм+ ---------- */
+function renderPanelA(box, rows, o) {
+  box.className = 'tp va' + (o.complete ? ' complete' : '');
+  box.innerHTML = '';
+
+  const head = el('div', 'va-head');
+  head.appendChild(el('div', 'va-proj', o.project + '/'));
+  const count = el('div', 'va-count', String(o.done));
+  count.appendChild(el('span', null, ' / ' + o.total));
+  head.appendChild(count);
+  box.appendChild(head);
+
+  const meter = el('div', 'va-meter');
+  const fill = el('i');
+  fill.style.width = Math.round(100 * o.done / o.total) + '%';
+  meter.appendChild(fill);
+  box.appendChild(meter);
+
+  const list = el('div');
+  for (const r of rows) {
+    const node = el('div', 'va-node ' + (r.t === 'd' ? 'dir' : 'file ' + r.st)
+      + (r.fresh ? ' appear' : '') + (r.t === 'd' && r.fresh ? ' announce' : ''));
+    for (let g = 0; g < r.d; g++) node.appendChild(el('span', 'va-guide'));
+    if (r.t === 'd') {
+      node.appendChild(el('span', 'va-arrow', '▾'));
+      node.appendChild(el('span', 'va-name', r.l));
+      if (r.fresh) node.appendChild(el('span', 'va-new', 'нова'));
+    } else {
+      node.appendChild(el('span', 'va-name', r.l));
+      if (r.st === 'done')    node.appendChild(el('span', 'va-state ok', '✓'));
+      if (r.st === 'current') node.appendChild(el('span', 'va-state cur', '●'));
+    }
+    list.appendChild(node);
+  }
+  box.appendChild(list);
+
+  box.appendChild(el('div', 'va-foot' + (o.complete ? ' ok' : ''),
+    o.complete
+      ? '✓ урок завершено — ' + o.total + ' файлів збудовано'
+      : 'збудовано ' + o.done + ' із ' + o.total + ' файлів'));
+}
+
+/* ---------- B — термінал / будівництво ---------- */
+function renderPanelB(box, rows, o) {
+  box.className = 'tp vb';
   box.innerHTML = '';
   const frame = el('div', 'vb-frame');
 
   const prompt = el('div', 'vb-prompt');
   prompt.appendChild(el('span', 'tilde', '~/'));
-  prompt.appendChild(document.createTextNode(LESSON.project));
+  prompt.appendChild(document.createTextNode(o.project));
   frame.appendChild(prompt);
   frame.appendChild(el('hr', 'vb-sep'));
 
   const list = el('div');
   for (const r of rows) {
-    if (freshDirs.length && r === freshDirs[0]) {
-      const cmd = el('div', 'vb-cmd appear fade');
+    if (r.t === 'd' && r.fresh) {
+      const cmd = el('div', 'vb-cmd');
       cmd.style.paddingLeft = (r.d * 14) + 'px';
       cmd.appendChild(el('span', 'dollar', '$'));
-      cmd.appendChild(document.createTextNode(
-        'mkdir -p ' + freshDirs[freshDirs.length - 1].key));
+      cmd.appendChild(document.createTextNode('mkdir -p ' + r.key));
       list.appendChild(cmd);
     }
     const node = el('div', 'vb-node ' + (r.t === 'd' ? 'dir' : 'file ' + r.st)
-      + (fresh.has(r.key) ? ' appear' : ''));
+      + (r.fresh ? ' appear' : ''));
     node.style.paddingLeft = (r.d * 14) + 'px';
     if (r.t === 'f') {
-      const m = r.st === 'done' ? ['ok', '▪'] : ['cur', '▮'];
+      const m = r.st === 'current' ? ['cur', '▮'] : ['ok', '▪'];
       node.appendChild(el('i', 'vb-mark ' + m[0], m[1]));
     }
     node.appendChild(el('span', 'vb-name', r.l));
@@ -590,12 +896,52 @@ function renderTree() {
   }
   frame.appendChild(list);
 
-  frame.appendChild(el('div', 'vb-stat' + (complete ? ' ok' : ''),
-    complete
-      ? '── готово ✓ · ' + TREE_TOTAL + ' файлів · 100% ──'
-      : '── ' + rows.filter(r => r.t === 'f').length + ' файлів · ' + dirs.size
-        + ' тек · ' + Math.round(100 * doneN / TREE_TOTAL) + '% ──'));
+  frame.appendChild(el('div', 'vb-stat' + (o.complete ? ' ok' : ''),
+    o.complete
+      ? '── готово ✓ · ' + o.total + ' файлів · 100% ──'
+      : '── ' + rows.filter(r => r.t === 'f').length + ' файлів · ' + o.dirs
+        + ' тек · ' + Math.round(100 * o.done / o.total) + '% ──'));
   box.appendChild(frame);
+}
+
+/* ---------- C — каркас ---------- */
+function renderPanelC(box, rows, o) {
+  box.className = 'tp vc' + (o.complete ? ' complete' : '');
+  box.innerHTML = '';
+
+  const tab = el('div', 'vc-tab');
+  tab.appendChild(el('div', 'vc-proj', o.project));
+  tab.appendChild(el('div', 'vc-pct' + (o.complete ? ' ok' : ''),
+    o.complete ? '✓ 100%' : Math.round(100 * o.done / o.total) + '%'));
+  box.appendChild(tab);
+
+  const root = el('div', 'vc-box root');
+  const stack = [root]; // stack[d+1] = контейнер для глибини d
+  for (const r of rows) {
+    while (stack.length - 1 > r.d) stack.pop();
+    const parent = stack[stack.length - 1];
+    if (r.t === 'd') {
+      const dir = el('div', 'vc-dir' + (r.fresh ? ' fresh appear' : ''));
+      dir.appendChild(el('div', 'vc-label', r.l));
+      parent.appendChild(dir);
+      stack.push(dir);
+    } else {
+      parent.appendChild(el('div', 'vc-file ' + r.st + (r.fresh ? ' appear' : ''), r.l));
+    }
+  }
+  box.appendChild(root);
+
+  box.appendChild(el('div', 'vc-foot' + (o.complete ? ' ok' : ''),
+    o.complete
+      ? '✓ урок завершено — ' + o.total + ' файлів'
+      : 'збудовано ' + o.done + ' із ' + o.total + ' файлів'));
+}
+
+function renderTree() {
+  const rows = treeRowsData();
+  const render = { a: renderPanelA, b: renderPanelB, c: renderPanelC }[TREE_VARIANT]
+    || renderPanelA;
+  render($('tree'), rows, treeOpts(rows));
 }
 
 function renderFragment() {
