@@ -151,6 +151,12 @@
     white-space: pre;          /* довгі рядки — БЕЗ переносів */
     overflow-x: auto;
     transition: border-color 0.2s ease;
+    /* ширина — під найдовший рядок, може виходити за колонку 880px.
+       Кап: 50vw+86px = до краю екрана мінус місце нотатки (280+18)
+       і відступ 28px, з урахуванням центрованої колонки */
+    width: max-content;
+    min-width: 100%;
+    max-width: calc(50vw + 86px);
   }
 
   pre#code::-webkit-scrollbar { height: 8px; }
@@ -210,7 +216,7 @@
 
   #step-note {
     position: absolute;
-    left: calc(100% + 18px);
+    /* left виставляє JS — правий край коду тепер динамічний */
     width: 280px;
     top: 0;
     transition: top 0.18s ease;
@@ -220,7 +226,7 @@
     padding: 12px 16px;
   }
 
-  /* немає місця праворуч — нотатка стає під кодом */
+  /* немає місця праворуч — нотатка стає під кодом, код може до краю екрана */
   @media (max-width: 1419px) {
     #step-note {
       position: static;
@@ -228,6 +234,7 @@
       border-radius: 12px;
       padding: 14px 22px;
     }
+    pre#code { max-width: min(calc(100vw - 56px), calc(50vw + 384px)); }
   }
 
   #step-note .step-label {
@@ -435,6 +442,7 @@ function updateStepNote() {
   if (!s) { $('step-note').hidden = true; return; }
   $('step-text').textContent = s.note;
   $('step-note').hidden = false;
+  $('step-note').style.left = ($('code').offsetWidth + 18) + 'px';
   const cur = chars[state.pos];
   if (cur) $('step-note').style.top = (cur.offsetTop - 7) + 'px';
 }
